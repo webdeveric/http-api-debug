@@ -1,6 +1,6 @@
 <?php
 
-namespace WDE\Util\HTTPAPIDebug;
+namespace WDE\HTTPAPIDebug;
 
 class HTTPAPIDebug
 {
@@ -98,7 +98,6 @@ class HTTPAPIDebug
         \WDE\admin_debug($args);
         \WDE\admin_debug($url);
         */
-
 
     }
 
