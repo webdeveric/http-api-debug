@@ -39,8 +39,36 @@ function delete_log_entry_confirm()
 
 function http_api_debug_admin_menu()
 {
-    \add_management_page( 'HTTP API Debug', 'HTTP API Debug', 'update_plugins', 'http-api-debug', __NAMESPACE__ . '\http_api_debug_admin_page');
+    global $http_api_debug_page;
+    $http_api_debug_page = \add_management_page( 'HTTP API Debug', 'HTTP API Debug', 'update_plugins', 'http-api-debug', __NAMESPACE__ . '\http_api_debug_admin_page');
+    add_action("load-$http_api_debug_page", __NAMESPACE__ . '\http_api_debug_screen_options');
 }
+
+function http_api_debug_screen_options()
+{
+    global $http_api_debug_page;
+
+    $screen = get_current_screen();
+
+    if(!is_object($screen) || $screen->id != $http_api_debug_page)
+       return;
+ 
+    $args = array(
+        'label'   => 'Log entries per page',
+        'default' => 20,
+        'option'  => 'http_api_debug_log_per_page'
+    );
+
+    add_screen_option( 'per_page', $args );
+}
+
+function http_api_debug_set_screen_option($status, $option, $value)
+{
+    if ( $option == 'http_api_debug_log_per_page' )
+        return $value;
+}
+add_filter('set-screen-option', __NAMESPACE__ . '\http_api_debug_set_screen_option', 10, 3);
+
 
 function http_api_debug_admin_page()
 {
