@@ -3,20 +3,33 @@
 namespace WDE\HTTPAPIDebug;
 
 
-function table_size( $table )
+function table_size( $table, $add_prefix = false )
 {
     global $wpdb;
+
+    if ($add_prefix)
+        $table = $wpdb->prefix . $table;
 
     $bytes = $wpdb->get_var(
         $wpdb->prepare(
             "SELECT data_length + index_length as bytes_size FROM information_schema.TABLES WHERE table_schema = (select database()) AND table_name = %s",
-            $wpdb->prefix . $table
+            $table
         )
     );
 
     return $bytes;
 }
 
+
+function table_columns( $table, $add_prefix = false )
+{
+    global $wpdb;
+
+    if ($add_prefix)
+        $table = $wpdb->prefix . $table;
+
+    return $wpdb->get_col( 'DESCRIBE ' . $table, 0 );
+}
 
 function convert_bytes( $bytes, $abbreviated = true, $precision = 2, $stop_at = null )
 {
