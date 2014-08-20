@@ -11,11 +11,19 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         parent::__construct(
             array(
-                'singular'  => 'log',
-                'plural'    => 'logs',
+                'singular'  => 'http_api_debug_log',
+                'plural'    => 'http_api_debug_logs',
                 'ajax'      => false
             )
         );
+
+    }
+
+    protected function json_column($id, $column, $data)
+    {
+        // return sprintf('<script>var %1$s%2$d = JSON.parse(\'%3$s\');</script>', $column, $id, addslashes( json_encode( json_decode( $data ) ) ) );
+        $data = json_decode( $data );
+        return implode(', ', array_keys( get_object_vars($data) ) );
 
     }
 
@@ -31,34 +39,32 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 				return sprintf('<a href="%1$s" target="_blank">%1$s</a>', $item[$column_name] );
 			case 'args':
 			case 'response':
-				$log_id = $item['log_id'];
-				return sprintf('<script>var %1$s%2$d = JSON.parse(\'%3$s\');</script>', $column_name, $log_id, addslashes( json_encode( json_decode( $item[$column_name] ) ) ) );
+				return $this->json_column( $item['log_id'], $column_name, $item[$column_name] );
             default:
                 return print_r(array_keys($item),true);
         }
     }
 
-    public function column_title($item)
+    public function column_url($item)
     {
-        //Build row actions
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&action=%s&movie=%s">Edit</a>',$_REQUEST['page'],'edit',$item['ID']),
-            'delete'    => sprintf('<a href="?page=%s&action=%s&movie=%s">Delete</a>',$_REQUEST['page'],'delete',$item['ID']),
+            'view'     => sprintf('<a href="?page=%s&action=%s&log_id=%d">View</a>', $_REQUEST['page'], 'view', $item['log_id'] ),
+            'delete'   => sprintf('<a href="?page=%s&action=%s&log_id=%d">Delete</a>', $_REQUEST['page'], 'delete', $item['log_id'] ),
+            'visiturl' => sprintf('<a href="%1$s" target="_blank">Visit URL</a>', $item['url'] )
         );
-        
-        //Return the title contents
-        return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            /*$1%s*/ $item['title'],
-            /*$2%s*/ $item['ID'],
-            /*$3%s*/ $this->row_actions($actions)
+
+        return sprintf(
+            '%1$s%2$s',
+            $item['url'],
+            $this->row_actions($actions)
         );
     }
 
     public function column_cb($item){
         return sprintf(
             '<input type="checkbox" name="%1$s[]" value="%2$s" />',
-            /*$1%s*/ $this->_args['singular'],  //Let's simply repurpose the table's singular label ("movie")
-            /*$2%s*/ $item['ID']                //The value of the checkbox should be the record's id
+            $this->_args['singular'],
+            $item['log_id']
         );
     }
 
@@ -100,10 +106,9 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
     public function process_bulk_action()
     {
-        if ( 'delete'===$this->current_action() ) {
+        if ( $this->current_action() === 'delete' ) {
             wp_die('Delete log entries here!');
         }
-        
     }
 
     public function prepare_items()
