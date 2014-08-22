@@ -93,3 +93,15 @@ function get_bytes( $val )
 
     return $num; //Bytes
 }
+
+
+function str_starts_with($haystack, $needle)
+{
+    return $needle === "" || strpos($haystack, $needle) === 0;
+}
+
+
+function str_ends_with($haystack, $needle)
+{
+    return $needle === "" || substr($haystack, -strlen($needle)) === $needle;
+}
