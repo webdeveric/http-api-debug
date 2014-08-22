@@ -107,14 +107,34 @@ class HTTPAPIDebug
         return false;
     }
 
+    protected function wp_error_request_timedout(\WP_Error $response)
+    {
+        $messages = $response->get_error_messages('http_request_failed');
+        foreach ($messages as &$message) {
+            if (str_starts_with($messages, 'Operation timed out'))
+                return true;
+        }
+        return false;
+    }
+
     /*
-        http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
         Should I use fake response codes for wp bugs and dns errors.
     */
-    public function wp_cron_wp_error_response_code($code, $url, $response)
+    public function wp_cron_wp_error_response_code($code, $url, \WP_Error $response)
     {
         if ($code === 0 && $this->is_cron_request($url)) {
             return 999;
+        }
+        return $code;
+    }
+
+    /*
+        http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+    */
+    public function timedout_wp_error_response_code($code, $url, \WP_Error $response)
+    {
+        if ($code === 0 && $this->wp_error_request_timedout($response)) {
+            return 408; // 408 Request Timeout
         }
         return $code;
     }
