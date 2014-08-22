@@ -16,41 +16,39 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
                 'ajax'      => false
             )
         );
-
     }
 
     protected function json_column($id, $column, $data)
     {
         // return sprintf('<script>var %1$s%2$d = JSON.parse(\'%3$s\');</script>', $column, $id, addslashes( json_encode( json_decode( $data ) ) ) );
         $data = json_decode( $data );
-        return implode(', ', array_keys( get_object_vars($data) ) );
-
+        return implode(', ', array_keys( array_filter( get_object_vars( $data ) ) ) );
     }
 
     public function column_default($item, $column_name)
     {
         switch ($column_name) {
-        	case 'log_id':
-        	case 'context':
-        	case 'transport':
-        	case 'log_time':
-        		return $item[$column_name];
-			case 'url':
-				return sprintf('<a href="%1$s" target="_blank">%1$s</a>', $item[$column_name] );
-			case 'args':
-			case 'response':
-				return $this->json_column( $item['log_id'], $column_name, $item[$column_name] );
+            case 'log_id':
+            case 'context':
+            case 'transport':
+            case 'log_time':
+                return $item[$column_name];
+            case 'url':
+                return sprintf('<a href="%1$s" target="_blank">%1$s</a>', $item[$column_name] );
+            case 'args':
+            case 'response':
+                return $this->json_column( $item['log_id'], $column_name, $item[$column_name] );
             default:
-                return print_r(array_keys($item),true);
+                return print_r($item[$column_name], true);
         }
     }
 
     public function column_url($item)
     {
         $actions = array(
-            'view'     => sprintf('<a href="?page=%s&action=%s&log_id=%d">View</a>', $_REQUEST['page'], 'view', $item['log_id'] ),
-            'delete'   => sprintf('<a href="?page=%s&action=%s&log_id=%d">Delete</a>', $_REQUEST['page'], 'delete', $item['log_id'] ),
-            'visiturl' => sprintf('<a href="%1$s" target="_blank">Visit URL</a>', $item['url'] )
+            'view'   => sprintf('<a href="?page=%1$s&action=%2$s&log_id=%3$d" class="http-api-debug-details-action" data-log-id="%3$d">View Details</a>', $_REQUEST['page'], 'view', $item['log_id'] ),
+            'delete' => sprintf('<a href="?page=%1$s&action=%2$s&log_id=%3$d" class="http-api-debug-delete-action" data-log-id="%3$d">Delete</a>', $_REQUEST['page'], 'delete', $item['log_id'] ),
+            'visit'  => sprintf('<a href="%1$s" target="_blank" class="http-api-debug-visit-action" data-log-id="%2$d">Visit URL</a>', $item['url'], $item['log_id'] )
         );
 
         return sprintf(
@@ -68,21 +66,29 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         );
     }
 
+    private function column_title($column)
+    {
+        $title = ucwords( str_replace('_', ' ', $column) );
+        $title = str_replace(' Id', ' ID', $title);
+        return $title;
+    }
+
     public function get_columns()
     {
         $columns = table_columns('http_api_debug_log', true);
-		$columns = array_map('ucfirst', array_combine($columns, $columns) );
+        $columns = array_map(array(&$this, 'column_title'), array_combine($columns, $columns) );
+
+        $columns['log_id']   = 'ID';
+        $columns['url']      = 'URL';
+        $columns['log_time'] = 'When';
 
         $columns = array_merge(
-			array(
-            	'cb' => '<input type="checkbox" />'
-	        ),
-			$columns
+            array(
+                'cb'       => '<input type="checkbox" />',
+            ),
+            $columns
         );
-		$columns['log_id']   = 'ID';
-		$columns['url']      = 'URL';
-		$columns['log_time'] = 'When';
-
+        
         return $columns;
     }
 
@@ -91,7 +97,8 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         $sortable_columns = array(
             'log_id'   => array('log_id', false),
             'log_time' => array('log_time', true),
-            'url'      => array('url', false)
+            'url'      => array('url', false),
+            'status'   => array('status', false)
         );
         return $sortable_columns;
     }
@@ -117,15 +124,21 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         $per_page = $this->get_items_per_page('http_api_debug_log_per_page', 20);
 
-		$current_page = $this->get_pagenum();
+        $current_page = $this->get_pagenum();
 
         $total_items = (int)$wpdb->get_var("select count(*) from {$wpdb->prefix}http_api_debug_log");
 
         $page_offset = $current_page > 1 ? ($current_page - 1) * $per_page : 0;
 
-		$columns = $this->get_columns();
+        $columns = $this->get_columns();
 
-        $hidden = array('log_id', 'context', 'transport');
+        $hidden = array('log_id', 'context', 'transport', 'args');
+
+        if ( ! is_multisite()) {
+            $hidden[] = 'site_id';
+            $hidden[] = 'blog_id';
+        }
+
 
         $sortable = $this->get_sortable_columns();
 
@@ -134,17 +147,17 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         $this->process_bulk_action();
 
         $order_by = isset($_REQUEST['orderby']) && array_key_exists( $_REQUEST['orderby'], $columns ) ? $_REQUEST['orderby'] : 'log_time';
-		
-		$order = 'DESC';
+        
+        $order = 'DESC';
 
-		if ( isset( $_REQUEST['order'] )  && in_array( strtoupper( $_REQUEST['order'] ), array('ASC', 'DESC') ) ) {
-			$order = $_REQUEST['order'];
-		}
+        if ( isset( $_REQUEST['order'] )  && in_array( strtoupper( $_REQUEST['order'] ), array('ASC', 'DESC') ) ) {
+            $order = $_REQUEST['order'];
+        }
 
         $data = $wpdb->get_results(
-        	"select * from {$wpdb->prefix}http_api_debug_log order by {$order_by} {$order} limit {$page_offset}, {$per_page}",
-        	'ARRAY_A'
-    	);
+            "select * from {$wpdb->prefix}http_api_debug_log order by {$order_by} {$order} limit {$page_offset}, {$per_page}",
+            'ARRAY_A'
+        );
 
         $this->items = $data;
 
