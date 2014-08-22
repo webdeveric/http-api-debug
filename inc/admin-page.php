@@ -5,6 +5,11 @@ namespace WDE\HTTPAPIDebug;
 if ( ! \is_admin())
     return;
 
+function admin_page_css()
+{
+    wp_enqueue_style('http-api-debug', plugins_url('/css/dist/main.min.css', HTTP_API_DEBUG_FILE), array(), HTTP_API_DEBUG_VERSION);
+}
+
 function display_log_table()
 {
     include __DIR__ . '/HTTPAPIDebugLogTable.php';
@@ -16,8 +21,8 @@ function display_log_table()
 
     <h2>HTTP API Debug Log</h2>
 
-    <p class="message">
-        Log size: <?php echo convert_bytes( table_size('http_api_debug_log', true), false, 0 ); ?>
+    <p class="message" title="The size is the sum of the data in the table and the indexes on the table.">
+        Log Size: <strong><?php echo convert_bytes( table_size('http_api_debug_log', true), false, 2 ); ?></strong>
     </p>
 
     <form id="movies-filter" method="get">
@@ -48,7 +53,8 @@ function display_log_entry()
         if ( property_exists($entry, 'response') )
             $entry->response = json_decode($entry->response);
 
-        include __DIR__ . '/single-entry.php';
+        if (isset($entry))
+            include __DIR__ . '/single-entry.php';
 
     } else {
 
@@ -67,7 +73,11 @@ function delete_log_entry_confirm()
 function http_api_debug_admin_menu()
 {
     global $http_api_debug_page;
+
     $http_api_debug_page = \add_management_page( 'HTTP API Debug', 'HTTP API Debug', 'update_plugins', 'http-api-debug', __NAMESPACE__ . '\http_api_debug_admin_page');
+
+    add_action('admin_print_styles-' . $http_api_debug_page, __NAMESPACE__ . '\admin_page_css');
+
     add_action("load-$http_api_debug_page", __NAMESPACE__ . '\http_api_debug_screen_options');
 }
 
