@@ -11,6 +11,7 @@ function display_log_table()
 
     $log_table = new HTTPAPIDebugLogTable();
     $log_table->prepare_items();
+
     ?>
 
     <h2>HTTP API Debug Log</h2>
@@ -29,7 +30,33 @@ function display_log_table()
 
 function display_log_entry()
 {
-    echo '<h2>Show single entry here.</h2>';
+    global $wpdb;
+    $entry = $wpdb->get_results(
+        $wpdb->prepare(
+            "select * from {$wpdb->prefix}http_api_debug_log where log_id = %d limit 1",
+            $_REQUEST['log_id']
+        )
+    );
+
+    if ( ! empty( $entry ) ) {
+
+        $entry = array_shift($entry);
+
+        if ( property_exists($entry, 'args') )
+            $entry->args = json_decode($entry->args);
+
+        if ( property_exists($entry, 'response') )
+            $entry->response = json_decode($entry->response);
+
+        include __DIR__ . '/single-entry.php';
+
+    } else {
+
+        echo '<h1>Entry not found</h1>';
+        printf('<p><a href="%s">Go back</a></p>', admin_url('tools.php?page=http-api-debug'));
+
+    }
+
 }
 
 function delete_log_entry_confirm()
