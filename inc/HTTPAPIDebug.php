@@ -16,6 +16,9 @@ class HTTPAPIDebug
         register_activation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'activate') );
         register_deactivation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'deactivate') );
 
+        add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'wp_cron_wp_error_response_code'), 1, 3);
+        add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'dns_wp_error_response_code'), 10, 3);
+
         add_action( 'plugins_loaded', array(&$this, 'update_db_check') );
         add_action( 'http_api_debug', array(&$this, 'http_api_debug'), 10, 5);
     }
@@ -37,7 +40,6 @@ class HTTPAPIDebug
 
     public function deactivate()
     {
-        
     }
 
     public function install()
@@ -53,13 +55,18 @@ class HTTPAPIDebug
         }
 
         $sql = "CREATE TABLE $this->table_name (
-            log_id BIGINT unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            url TEXT,
-            args TEXT,
-            response TEXT,
+            log_id BIGINT unsigned NOT NULL AUTO_INCREMENT,
+            site_id BIGINT(20) unsigned NOT NULL default 0,
+            blog_id BIGINT(20) unsigned NOT NULL default 0,
+            url TEXT NOT NULL,
+            method varchar(10) not null default '',
+            args TEXT NOT NULL,
+            response TEXT NOT NULL,
+            status INT(3) UNSIGNED ZEROFILL,
             context varchar(32) NOT NULL default 'response',
             transport varchar(32) NOT NULL default '',
-            log_time datetime NOT NULL DEFAULT '0000-00-00 00:00:00'
+            log_time datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+            PRIMARY KEY  (log_id)
         ) $charset_collate;";
 
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -78,27 +85,67 @@ class HTTPAPIDebug
         }
     }
 
-    function http_api_debug($response, $context, $class, $args, $url)
+    protected function get_response_code($url, $response)
+    {
+        if (is_wp_error($response)) {
+            return apply_filters('http_api_debug_wp_error_response_code', 0, $url, $response);
+        } else {
+            return isset($response['response'], $response['response']['code']) ? $response['response']['code'] : 0;
+        }
+    }
+
+    protected function is_cron_request($url)
+    {
+        $url_parts = parse_url($url);
+        $site_host = parse_url(get_site_url(), PHP_URL_HOST);
+
+        if ( isset($url_parts['host'], $url_parts['path']) &&
+             $url_parts['host'] == $site_host &&
+             str_ends_with($url_parts['path'], '/wp-cron.php') ) {
+            return true;
+        }
+        return false;
+    }
+
+    /*
+        http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+        Should I use fake response codes for wp bugs and dns errors.
+    */
+    public function wp_cron_wp_error_response_code($code, $url, $response)
+    {
+        if ($code === 0 && $this->is_cron_request($url)) {
+            return 999;
+        }
+        return $code;
+    }
+
+    public function dns_wp_error_response_code($code, $url, $response)
+    {
+        if ($code === 0 && ! checkdnsrr($url, 'A') ) {
+            return 410; // Gone - Is this the best code to use?
+        }
+        return $code;
+    }
+
+    public function http_api_debug($response, $context, $transport_class, $request_args, $url)
     {
         $num_rows = $this->db->query( 
             $this->db->prepare(
-                "insert into {$this->table_name} (url, args, response, context, transport, log_time) values (%s, %s, %s, %s, %s, NOW())",
+                "insert into {$this->table_name}
+                    (site_id, blog_id, url, method, args, response, status, context, transport, log_time)
+                    values
+                    (%d, %d, %s, %s, %s, %s, %d, %s, %s, NOW())",
+                function_exists('get_current_site') ? get_current_site() : 0,
+                get_current_blog_id(),
                 $url,
-                json_encode($args),
+                isset($request_args['method']) ? $request_args['method'] : '',
+                json_encode($request_args),
                 json_encode($response),
+                $this->get_response_code($url, $response),
                 $context,
-                $class
+                $transport_class
             )
         );
-
-        /*
-        \WDE\admin_debug($response);
-        \WDE\admin_debug($context);
-        \WDE\admin_debug($class);
-        \WDE\admin_debug($args);
-        \WDE\admin_debug($url);
-        */
-
     }
 
 }
