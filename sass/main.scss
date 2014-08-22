@@ -1,0 +1,56 @@
+.log-entry-meta{
+    display: block;
+    clear: both;
+    background: #FFF;
+    box-shadow: 1px 1px 1px 0 #DFDFDF;
+    border-width:0 0 0 4px;
+    border-style:solid;
+    border-color: #DFDFDF;
+}
+
+[class*="status-2"]{
+    border-left-color: #16C98D; /* $green */
+}
+
+[class*="status-3"]{
+    border-left-color: #FFC83F; /* $orange */
+}
+
+[class*="status-4"]{
+    border-left-color: #FA5E5B; /* $red */
+}
+
+[class*="status-404"]{
+    border-left-color: red;
+}
+
+.log-entry-meta span{
+    display: inline-block;
+    vertical-align: top;
+    padding:.5em 1em;
+    box-sizing: border-box;
+    border-width: 0 1px 0 0;
+    border-style: solid;
+    border-color: #EFEFEF;
+}
+
+.log-entry-meta .method{
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.log-entry-meta .status{
+
+}
+
+.response-body-wrapper{
+
+}
+
+.response-body{
+    max-height: 400px;
+    overflow: auto;
+    background-color: #FFF;
+    padding: 1em;
+    white-space: pre-wrap;
+}

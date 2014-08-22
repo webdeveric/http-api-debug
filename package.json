@@ -1,0 +1,21 @@
+{
+  "name": "http-api-debug",
+  "version": "0.1.3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webdeveric/http-api-debug.git"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-checkwpversion": "~0.3.0",
+    "grunt-contrib-compass": "^0.8.0",
+    "grunt-contrib-csslint": "^0.2.0",
+    "grunt-contrib-cssmin": "^0.9.0",
+    "grunt-contrib-imagemin": "^0.7.2",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-sass": "^0.7.4",
+    "grunt-contrib-uglify": "^0.4.1",
+    "grunt-contrib-watch": "^0.6.1",
+    "load-grunt-tasks": "^0.6.0"
+  }
+}
