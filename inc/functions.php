@@ -133,3 +133,48 @@ function admin_debug($message)
         echo '<div class="error"><pre>', print_r($message, true), '</pre></div>';
     });
 }
+
+function str_value($arg)
+{
+    if (is_scalar($arg)) {
+        if (is_bool($arg))
+            return $arg ? 'true' : 'false';
+        return (string)$arg;
+    } else {
+        if (is_object($arg)) {
+            if (method_exists($arg, '__toString')) {
+                return (string)$arg;
+            } else {
+                $arg = (array)$arg;
+            }
+        }
+
+        if (is_array($arg))
+            return key_value_table($arg);
+    }
+    return print_r($arg, true);
+}
+
+function key_value_table($data, $headers = array('Key', 'Value'))
+{
+    if (empty($data))
+        return '';
+    $rows = array();
+
+    foreach ($data as $key => &$value) {
+        $rows[] = sprintf(
+            '<tr><th scope="row">%1$s</th><td>%2$s</td></tr>',
+            $key,
+            str_value( $value )
+        );
+    }
+
+    $html = sprintf(
+        '<table><thead><tr><th scope="col">%1$s</th><th scope="col">%2$s</th></tr></thead><tbody>%3$s</tbody></table>',
+        array_shift($headers),
+        array_shift($headers),
+        implode('', $rows)
+    );
+
+    return $html;
+}
