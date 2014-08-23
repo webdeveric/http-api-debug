@@ -1,3 +1,6 @@
+<?php
+namespace WDE\HTTPAPIDebug;
+?>
 <article class="log-entry">
 
     <header>
@@ -9,9 +12,41 @@
         </div>
     </header>
 
-    <xmp><?php // print_r( array_keys( get_object_vars($entry) ) ); ?></xmp>
+    <xmp><?php // print_r( $entry ); ?></xmp>
 
-    <div class="response-body-wrapper">
+    <?php if (isset($entry->args)): ?>
+   
+    <section>
+        <h2>Request Arguments</h2>
+        <?php echo key_value_table($entry->args, array('Argument', 'Value')); ?>
+    </section>
+    
+    <?php endif; ?>
+
+
+    <?php /* if (isset($entry->args, $entry->args->headers)): ?>
+    
+    <section>
+        <h2>Request Headers</h2>
+        <?php
+            echo key_value_table($entry->args->headers, array('Header', 'Value'));
+            // unset($entry->args->headers);
+        ?>
+    </section>
+    
+    <?php endif; */ ?>
+
+
+    <?php if (isset($entry->response, $entry->response->headers)): ?>
+    
+    <section>
+        <h2>Response Headers</h2>
+        <?php echo key_value_table($entry->response->headers, array('Header', 'Value')); ?>
+    </section>
+    
+    <?php endif; ?>
+
+    <section class="full-width">
         <h2>Response Body</h2>
 
         <?php if (isset($entry->response->body)): ?>
@@ -35,6 +70,6 @@
             </dl>
         <?php endif; ?>
 
-    </div>
+    </section>
 
 </article>
