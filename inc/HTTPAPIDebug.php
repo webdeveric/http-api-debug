@@ -16,8 +16,9 @@ class HTTPAPIDebug
         register_activation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'activate') );
         register_deactivation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'deactivate') );
 
-        add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'wp_cron_wp_error_response_code'), 1, 3);
-        add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'dns_wp_error_response_code'), 10, 3);
+        // add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'wp_cron_wp_error_response_code'), 1, 3);
+        // add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'timed_out_wp_error_response_code'), 2, 3);
+        // add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'no_dns_record_wp_error_response_code'), 10, 3);
 
         add_action( 'plugins_loaded', array(&$this, 'update_db_check') );
         add_action( 'http_api_debug', array(&$this, 'http_api_debug'), 10, 5);
@@ -75,13 +76,13 @@ class HTTPAPIDebug
 
         \update_option( $this->version_db_key, $this->version() );
 
-        // \WDE\admin_debug($sql);
-
     }
 
     public function update_db_check() {
-        if (version_compare($this->dbVersion(), $this->version(), '<')) {
+        if ( ! table_exists('http_api_debug_log') || version_compare($this->dbVersion(), $this->version(), '<')) {
             $this->install();
+            if (current_filter() === 'plugins_loaded')
+                admin_notice('Updating DB for HTTP API Debug plugin.');
         }
     }
 
@@ -117,9 +118,7 @@ class HTTPAPIDebug
         return false;
     }
 
-    /*
-        Should I use fake response codes for wp bugs and dns errors.
-    */
+    // Should I use fake response codes for wp bugs?
     public function wp_cron_wp_error_response_code($code, $url, \WP_Error $response)
     {
         if ($code === 0 && $this->is_cron_request($url)) {
@@ -128,10 +127,8 @@ class HTTPAPIDebug
         return $code;
     }
 
-    /*
-        http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-    */
-    public function timedout_wp_error_response_code($code, $url, \WP_Error $response)
+    // http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+    public function timed_out_wp_error_response_code($code, $url, \WP_Error $response)
     {
         if ($code === 0 && $this->wp_error_request_timedout($response)) {
             return 408; // 408 Request Timeout
@@ -139,10 +136,10 @@ class HTTPAPIDebug
         return $code;
     }
 
-    public function dns_wp_error_response_code($code, $url, $response)
+    public function no_dns_record_wp_error_response_code($code, $url, $response)
     {
         if ($code === 0 && ! checkdnsrr($url, 'A') ) {
-            return 410; // Gone - Is this the best code to use?
+            return 410; // Gone - Is this the best code to use when there isn't a DNS record for $url?
         }
         return $code;
     }

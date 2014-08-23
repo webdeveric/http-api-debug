@@ -5,9 +5,17 @@ namespace WDE\HTTPAPIDebug;
 if ( ! \is_admin())
     return;
 
-function admin_page_css()
+function admin_styles()
 {
+    wp_enqueue_style('highlightjs', '//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.2/styles/default.min.css', array(), null);
     wp_enqueue_style('http-api-debug', plugins_url('/css/dist/main.min.css', HTTP_API_DEBUG_FILE), array(), HTTP_API_DEBUG_VERSION);
+}
+
+function admin_scripts()
+{
+    wp_enqueue_script('highlightjs', '//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.2/highlight.min.js', array(), null);
+    wp_enqueue_script('http-api-debug', plugins_url('/js/dist/main.min.js', HTTP_API_DEBUG_FILE), array(), HTTP_API_DEBUG_VERSION);
+
 }
 
 function display_log_table()
@@ -22,10 +30,10 @@ function display_log_table()
     <h2>HTTP API Debug Log</h2>
 
     <p class="message" title="The size is the sum of the data in the table and the indexes on the table.">
-        Log Size: <strong><?php echo convert_bytes( table_size('http_api_debug_log', true), false, 2 ); ?></strong>
+        Log Size: <strong><?php echo convert_bytes( table_size('http_api_debug_log'), false, 2 ); ?></strong>
     </p>
 
-    <form id="movies-filter" method="get">
+    <form id="http-api-debug-log-filter" method="get">
         <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>" />
         <?php $log_table->display(); ?>
     </form>
@@ -76,7 +84,8 @@ function http_api_debug_admin_menu()
 
     $http_api_debug_page = \add_management_page( 'HTTP API Debug', 'HTTP API Debug', 'update_plugins', 'http-api-debug', __NAMESPACE__ . '\http_api_debug_admin_page');
 
-    add_action('admin_print_styles-' . $http_api_debug_page, __NAMESPACE__ . '\admin_page_css');
+    add_action('admin_print_styles-' . $http_api_debug_page, __NAMESPACE__ . '\admin_styles');
+    add_action('admin_print_scripts-' . $http_api_debug_page, __NAMESPACE__ . '\admin_scripts');
 
     add_action("load-$http_api_debug_page", __NAMESPACE__ . '\http_api_debug_screen_options');
 }

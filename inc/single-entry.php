@@ -13,8 +13,11 @@
 
     <div class="response-body-wrapper">
         <h2>Response Body</h2>
+
         <?php if (isset($entry->response->body)): ?>
-            <xmp class="response-body"><?php echo $entry->response->body; ?></xmp>
+
+            <code class="response-body"><?php echo htmlentities($entry->response->body); ?></code>
+
         <?php elseif (isset($entry->response->errors, $entry->response->error_data)):
 
             $errors_types = (array)$entry->response->errors;
@@ -31,6 +34,7 @@
             ?>
             </dl>
         <?php endif; ?>
+
     </div>
 
 </article>

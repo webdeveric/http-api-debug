@@ -3,7 +3,7 @@
 namespace WDE\HTTPAPIDebug;
 
 
-function table_size( $table, $add_prefix = false )
+function table_size( $table, $add_prefix = true )
 {
     global $wpdb;
 
@@ -21,7 +21,7 @@ function table_size( $table, $add_prefix = false )
 }
 
 
-function table_columns( $table, $add_prefix = false )
+function table_columns( $table, $add_prefix = true )
 {
     global $wpdb;
 
@@ -30,6 +30,20 @@ function table_columns( $table, $add_prefix = false )
 
     return $wpdb->get_col( 'DESCRIBE ' . $table, 0 );
 }
+
+
+function table_exists( $table, $add_prefix = true )
+{
+    global $wpdb;
+
+    if ($add_prefix)
+        $table = $wpdb->prefix . $table;
+
+    $rows = $wpdb->query( $wpdb->prepare( 'show tables like %s', $table ) );
+
+    return $rows > 0;
+}
+
 
 function convert_bytes( $bytes, $abbreviated = true, $precision = 2, $stop_at = null )
 {
@@ -104,4 +118,18 @@ function str_starts_with($haystack, $needle)
 function str_ends_with($haystack, $needle)
 {
     return $needle === "" || substr($haystack, -strlen($needle)) === $needle;
+}
+
+function admin_notice($message)
+{
+    add_action('admin_notices', function () use ($message) {
+        echo '<div class="updated">', \wpautop($message), '</div>';
+    });
+}
+
+function admin_debug($message)
+{
+    add_action('admin_notices', function () use ($message) {
+        echo '<div class="error"><pre>', print_r($message, true), '</pre></div>';
+    });
 }

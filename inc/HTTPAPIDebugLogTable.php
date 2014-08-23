@@ -128,6 +128,9 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         $total_items = (int)$wpdb->get_var("select count(*) from {$wpdb->prefix}http_api_debug_log");
 
+        if ($per_page * $current_page > $total_items)
+            admin_notice( ($per_page * $current_page) . ' > ' . $total_items );
+
         $page_offset = $current_page > 1 ? ($current_page - 1) * $per_page : 0;
 
         $columns = $this->get_columns();
