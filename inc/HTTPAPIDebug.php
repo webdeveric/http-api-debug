@@ -74,8 +74,12 @@ class HTTPAPIDebug
 
         \dbDelta( $sql );
 
-        \update_option( $this->version_db_key, $this->version() );
+        $this->set_db_version( $this->version() );
+    }
 
+    protected function set_db_version($version)
+    {
+    	\update_option( $this->version_db_key, $version );
     }
 
     public function update_db_check() {
