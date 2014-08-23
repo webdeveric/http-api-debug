@@ -37,6 +37,13 @@ class HTTPAPIDebug
     public function activate()
     {
         $this->update_db_check();
+
+        if (str_starts_with(current_filter(), 'activate')) {
+        	// Fire off a quick request so that there is something in the log table after you activate.
+        	\wp_remote_get('http://ip.phplug.in/');
+        	\wp_remote_get('http://ip.phplug.in/?output=json');
+        	\wp_remote_get('http://ip.phplug.in/?output=xml');
+        }
     }
 
     public function deactivate()
