@@ -44,6 +44,7 @@ function display_log_table()
 function display_log_entry()
 {
     global $wpdb;
+
     $entry = $wpdb->get_results(
         $wpdb->prepare(
             "select * from {$wpdb->prefix}http_api_debug_log where log_id = %d limit 1",
@@ -60,6 +61,8 @@ function display_log_entry()
 
         if ( property_exists($entry, 'response') )
             $entry->response = json_decode($entry->response);
+
+		$entry = apply_filters('http_api_debug_log_entry', $entry);
 
         if (isset($entry))
             include __DIR__ . '/single-entry.php';
