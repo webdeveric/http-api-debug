@@ -1,56 +1,101 @@
+@import "variables";
+@import "placeholders";
+
+.full-width{
+    display: block;
+    clear: both;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.log-entry{
+    section{
+        display: inline-block;
+        vertical-align: top;
+        margin:0 0 30px 0;
+
+        h2{
+            margin:0 0 .33em 0;
+            padding:0;
+            line-height: 1;
+        }
+
+        table{
+            text-align: left;
+            border:0;
+            border-collapse: collapse;
+            max-width: 100%;
+            background: #FFF;
+            @extend %shadowed;
+
+            thead{
+                background: rgb(225, 88, 69);
+                color: #FFF;
+
+            }
+
+            th, td{
+                padding:6px 12px;
+            }
+
+            th{
+                font-weight: bold;
+            }
+
+            tbody tr:nth-child(even){
+                background: $table-row-alt-color;
+                border-width: 1px 0;
+                border-style: solid;
+                border-color: $table-border-color;
+
+
+            }
+        }
+    }
+}
+
+
+
 .log-entry-meta{
     display: block;
     clear: both;
     background: #FFF;
-    box-shadow: 1px 1px 1px 0 #DFDFDF;
     border-width:0 0 0 4px;
     border-style:solid;
-    border-color: #DFDFDF;
+    border-color: darken($table-border-color, 10%);
+    @extend %shadowed;
 }
 
-[class*="status-2"]{
-    border-left-color: #16C98D; /* $green */
-}
+@import "status";
 
-[class*="status-3"]{
-    border-left-color: #FFC83F; /* $orange */
-}
+.log-entry-meta{
 
-[class*="status-4"]{
-    border-left-color: #FA5E5B; /* $red */
-}
+    span{
+        display: inline-block;
+        vertical-align: top;
+        padding:.5em 1em;
+        box-sizing: border-box;
+        border-width: 0 1px 0 0;
+        border-style: solid;
+        border-color: #EFEFEF;
+    }
 
-[class*="status-404"]{
-    border-left-color: red;
-}
+    .method{
+        text-transform: uppercase;
+        font-weight: bold;
+    }
 
-.log-entry-meta span{
-    display: inline-block;
-    vertical-align: top;
-    padding:.5em 1em;
-    box-sizing: border-box;
-    border-width: 0 1px 0 0;
-    border-style: solid;
-    border-color: #EFEFEF;
-}
+    .status{
 
-.log-entry-meta .method{
-    text-transform: uppercase;
-    font-weight: bold;
-}
-
-.log-entry-meta .status{
-
-}
-
-.response-body-wrapper{
+    }
 
 }
 
 .response-body{
-    max-height: 400px;
+    max-height: 600px;
     overflow: auto;
     background-color: #FFF;
     padding: 1em;
     white-space: pre-wrap;
+    @extend %shadowed;
 }
