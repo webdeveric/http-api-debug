@@ -20,9 +20,19 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
     protected function json_column($id, $column, $data)
     {
-        // return sprintf('<script>var %1$s%2$d = JSON.parse(\'%3$s\');</script>', $column, $id, addslashes( json_encode( json_decode( $data ) ) ) );
         $data = json_decode( $data );
-        return implode(', ', array_keys( array_filter( get_object_vars( $data ) ) ) );
+
+        if ( ! isset($data))
+            return 'Unable do decode JSON.';
+
+        return implode(
+            ', ',
+            array_keys(
+                array_filter(
+                    get_object_vars( $data )
+                )
+            )
+        );
     }
 
     public function column_default($item, $column_name)

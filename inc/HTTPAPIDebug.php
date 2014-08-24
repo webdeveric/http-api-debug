@@ -68,8 +68,8 @@ class HTTPAPIDebug
             blog_id BIGINT(20) unsigned NOT NULL default 0,
             url TEXT NOT NULL,
             method varchar(10) not null default '',
-            args TEXT NOT NULL,
-            response TEXT NOT NULL,
+            args LONGTEXT NOT NULL,
+            response LONGTEXT NOT NULL,
             status INT(3) UNSIGNED ZEROFILL,
             context varchar(32) NOT NULL default 'response',
             transport varchar(32) NOT NULL default '',
@@ -106,19 +106,6 @@ class HTTPAPIDebug
         }
     }
 
-    protected function is_cron_request($url)
-    {
-        $url_parts = parse_url($url);
-        $site_host = parse_url(get_site_url(), PHP_URL_HOST);
-
-        if ( isset($url_parts['host'], $url_parts['path']) &&
-             $url_parts['host'] == $site_host &&
-             str_ends_with($url_parts['path'], '/wp-cron.php') ) {
-            return true;
-        }
-        return false;
-    }
-
     protected function wp_error_request_timedout(\WP_Error $response)
     {
         $messages = $response->get_error_messages('http_request_failed');
@@ -132,7 +119,7 @@ class HTTPAPIDebug
     // Should I use fake response codes for wp bugs?
     public function wp_cron_wp_error_response_code($code, $url, \WP_Error $response)
     {
-        if ($code === 0 && $this->is_cron_request($url)) {
+        if ($code === 0 && is_cron_request($url)) {
             return 999;
         }
         return $code;
@@ -157,6 +144,11 @@ class HTTPAPIDebug
 
     public function http_api_debug($response, $context, $transport_class, $request_args, $url)
     {
+        $log_this_entry = apply_filters('http_api_debug_record_log', true, $response, $context, $transport_class, $request_args, $url);
+
+        if ( ! $log_this_entry)
+            return;
+
         $num_rows = $this->db->query( 
             $this->db->prepare(
                 "insert into {$this->table_name}
