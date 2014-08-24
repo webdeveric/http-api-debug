@@ -5,10 +5,14 @@ namespace WDE\HTTPAPIDebug;
 
     <header>
         <h1>Log Entry #<?php echo $entry->log_id; ?></h1>
-        <div class="log-entry-meta status-<?php echo $entry->status; ?>">
-            <span class="status"><?php echo $entry->status; ?></span>
-            <span class="method"><?php echo $entry->args->method; ?></span>
-            <span class="url"><?php echo $entry->url; ?></span>
+        <div class="log-entry-meta">
+            <span class="status status-<?php echo $entry->status; ?>">
+                <?php echo $entry->status; ?>
+            </span><span class="method">
+                <?php echo $entry->args->method; ?>
+            </span><span class="url">
+                <?php echo $entry->url; ?>
+            </span>
         </div>
     </header>
 
