@@ -178,3 +178,27 @@ function key_value_table($data, $headers = array('Key', 'Value'))
 
     return $html;
 }
+
+function get_content_type($content_type_header)
+{
+    $parts = explode(';', $content_type_header);
+    return $parts[0];
+}
+
+function is_cron_request($url)
+{
+    $url_parts = parse_url($url);
+    $site_host = parse_url(get_site_url(), PHP_URL_HOST);
+
+    if ( isset($url_parts['host'], $url_parts['path']) &&
+         $url_parts['host'] == $site_host &&
+         str_ends_with($url_parts['path'], '/wp-cron.php') ) {
+        return true;
+    }
+    return false;
+}
+
+
+
+
+
