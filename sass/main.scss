@@ -14,6 +14,10 @@
         vertical-align: top;
         margin:0 0 30px 0;
 
+        & + section{
+            margin-left:10px;
+        }
+
         h2{
             margin:0 0 .33em 0;
             padding:0;
@@ -24,7 +28,6 @@
             text-align: left;
             border:0;
             border-collapse: collapse;
-            max-width: 100%;
             background: #FFF;
             @extend %shadowed;
 
@@ -42,60 +45,74 @@
                 font-weight: bold;
             }
 
-            tbody tr:nth-child(even){
-                background: $table-row-alt-color;
-                border-width: 1px 0;
-                border-style: solid;
-                border-color: $table-border-color;
+            tbody{
+                th{
+                    white-space: nowrap;
+                    vertical-align: top;
+                }
+                td {
+                    white-space: pre-wrap;
+                    word-break: break-all;
 
+
+                }
+                tr:nth-child(even){
+                    background: $table-row-alt-color;
+                    border-width: 1px 0;
+                    border-style: solid;
+                    border-color: $table-border-color;
+                }
 
             }
         }
     }
 }
 
-
-
 .log-entry-meta{
     display: block;
     clear: both;
     background: #FFF;
-    border-width:0 0 0 4px;
-    border-style:solid;
-    border-color: darken($table-border-color, 10%);
     @extend %shadowed;
-}
-
-@import "status";
-
-.log-entry-meta{
 
     span{
         display: inline-block;
         vertical-align: top;
-        padding:.5em 1em;
-        box-sizing: border-box;
-        border-width: 0 1px 0 0;
-        border-style: solid;
-        border-color: #EFEFEF;
+        padding:4px 10px;
     }
 
     .method{
         text-transform: uppercase;
         font-weight: bold;
+        background:#F8F8F8;
     }
 
     .status{
+        background: $table-row-alt-color;
+        color: #FFF;
+        font-weight: bold;
+        border: 0;
+    }
 
+    [class*="status-2"]{
+        background-color: #16C98D; /* $green */
+    }
+
+    [class*="status-3"]{
+        background-color: #FFC83F; /* $orange */
+    }
+
+    [class*="status-4"]{
+        background-color: #FA5E5B; /* $red */
+    }
+
+    [class*="status-404"]{
     }
 
 }
 
 .response-body{
-    max-height: 600px;
-    overflow: auto;
     background-color: #FFF;
     padding: 1em;
-    white-space: pre-wrap;
+    white-space: pre;
     @extend %shadowed;
 }
