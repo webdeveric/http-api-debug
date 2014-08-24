@@ -179,6 +179,48 @@ function key_value_table($data, $headers = array('Key', 'Value'))
     return $html;
 }
 
+function data_table($data, $headers = array())
+{
+    if (empty($data))
+        return '';
+
+    $table_columns = array();
+    $table_header_row = '';
+    foreach ($headers as &$table_header) {
+        list($col, $tag, $text) = explode(':', $table_header);
+        $table_columns[$col] = isset($tag) ? $tag : 'td';
+        $table_header_row .= '<th>'. ( isset($text)? $text : $col ) . '</th>';
+    }
+
+    if ( ! empty($table_header_row))
+        $table_header_row = sprintf('<thead><tr>%s</tr></thead>', $table_header_row);
+
+    unset($headers);
+
+    $rows = array();
+
+    foreach ($data as &$row) {
+
+        $tr = '<tr>';
+        foreach($row as $key => &$value) {
+            $tag = isset($table_columns[$key]) ? $table_columns[$key] : 'td';
+            $tr .= sprintf('<%1$s>%2$s</%1$s>', $tag, str_value( $value ) );
+        }
+        $tr .= '</tr>';
+
+        $rows[] = $tr;
+
+    }
+
+    $html = sprintf(
+        '<table>%1$s<tbody>%2$s</tbody></table>',
+        $table_header_row,
+        implode('', $rows)
+    );
+
+    return $html;
+}
+
 function get_content_type($content_type_header)
 {
     $parts = explode(';', $content_type_header);
@@ -198,7 +240,47 @@ function is_cron_request($url)
     return false;
 }
 
+function get_log_entry($log_id)
+{
+    global $wpdb;
 
+    $entry = $wpdb->get_results(
+        $wpdb->prepare(
+            "select * from {$wpdb->prefix}http_api_debug_log where log_id = %d limit 1",
+            $log_id
+        )
+    );
+
+    $entry = array_shift($entry);
+
+    if ( property_exists($entry, 'request_args') )
+        $entry->request_args = json_decode($entry->request_args, true);
+
+    $entry->request_headers = get_log_entry_headers($log_id, 'req');
+    $entry->response_headers = get_log_entry_headers($log_id, 'res');
+
+    return $entry;
+}
+
+function get_log_entry_headers($log_id, $header_type)
+{
+    global $wpdb;
+
+    $headers = $wpdb->get_results(
+        $wpdb->prepare(
+            "select header_name, header_value from {$wpdb->prefix}http_api_debug_log_headers where log_id = %d and header_type = %s",
+            $log_id,
+            $header_type
+        ),
+        OBJECT_K
+    );
+
+    foreach ($headers as &$value) {
+        $value = $value->header_value;
+    }
+
+    return $headers;
+}
 
 
 

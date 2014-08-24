@@ -4,11 +4,9 @@ namespace WDE\HTTPAPIDebug;
 
 function format_log_entry($entry)
 {
-    if (isset($entry->args, $entry->args->headers, $entry->args->headers->{'Content-Type'}, $entry->args->body) && $entry->args->body !== '') {
-        $content_type = $entry->args->headers->{'Content-Type'};
-        if (get_content_type($content_type) == 'application/x-www-form-urlencoded') {
-            parse_str($entry->args->body, $entry->args->body);
-            // $entry->args->body = urldecode($entry->args->body);
+    if (isset($entry->request_headers, $entry->request_headers['Content-Type'], $entry->request_body) && $entry->request_body !== '') {
+        if (get_content_type($entry->request_headers['Content-Type']) == 'application/x-www-form-urlencoded') {
+            parse_str($entry->request_body, $entry->request_body_parsed);
         }
     }
     return $entry;

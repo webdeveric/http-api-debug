@@ -4,58 +4,67 @@ namespace WDE\HTTPAPIDebug;
 <article class="log-entry">
 
     <header>
-        <h1>Log Entry #<?php echo $entry->log_id; ?></h1>
+        <h1>Log Entry #<?php echo intval($entry->log_id); ?> @ <time datetime="<?php echo \esc_attr($entry->log_time); ?>"><?php echo $entry->log_time; ?></time></h1>
         <div class="log-entry-meta">
             <span class="status status-<?php echo $entry->status; ?>">
                 <?php echo $entry->status; ?>
             </span><span class="method">
-                <?php echo $entry->args->method; ?>
+                <?php echo $entry->method; ?>
             </span><span class="url">
                 <?php echo $entry->url; ?>
             </span>
         </div>
     </header>
 
-    <xmp><?php // print_r( $entry ); ?></xmp>
+    <?php // var_dump($entry);?>
 
-    <?php if (isset($entry->args)): ?>
+    <?php if (isset($entry->request_args)): ?>
    
     <section>
         <h2>Request Arguments</h2>
-        <?php echo key_value_table($entry->args, array('Argument', 'Value')); ?>
+        <?php echo key_value_table($entry->request_args, array('Argument', 'Value')); ?>
     </section>
     
     <?php endif; ?>
 
-
-    <?php /* if (isset($entry->args, $entry->args->headers)): ?>
-    
     <section>
-        <h2>Request Headers</h2>
-        <?php
-            echo key_value_table($entry->args->headers, array('Header', 'Value'));
-            // unset($entry->args->headers);
-        ?>
-    </section>
-    
-    <?php endif; */ ?>
+        <h2>Headers</h2>
+        <?php if (isset($entry->request_headers)): ?>
+            <h3>Request Headers</h3>
+            <?php // echo data_table($entry->request_headers, array('header_name:th:Header Name', 'header_value:td:Header Value')); ?>
+            <?php echo key_value_table($entry->request_headers, array('Header', 'Value')); ?>
+        <?php endif; ?>
 
-
-    <?php if (isset($entry->response, $entry->response->headers)): ?>
-    
-    <section>
-        <h2>Response Headers</h2>
-        <?php echo key_value_table($entry->response->headers, array('Header', 'Value')); ?>
+        <?php if (isset($entry->response_headers)): ?>
+            <h3>Response Headers</h3>
+            <?php echo key_value_table($entry->response_headers, array('Header', 'Value')); ?>
+        <?php endif; ?>
     </section>
-    
-    <?php endif; ?>
+
+    <section class="full-width">
+        <h2>Request Body</h2>
+
+        <?php if (isset($entry->request_body)): ?>
+            <?php if (isset($entry->request_body_parsed)): ?>
+                <h3>Raw</h3>
+            <?php endif; ?>
+            <code class="body-output"><?php echo htmlentities($entry->request_body); ?></code>
+                
+            <?php
+                if (isset($entry->request_body_parsed) && is_array($entry->request_body_parsed))
+                    echo '<h3>Parsed</h3>', key_value_table($entry->request_body_parsed);
+            ?>
+
+        <?php endif; ?>
+
+    </section>
 
     <section class="full-width">
         <h2>Response Body</h2>
 
-        <?php if (isset($entry->response->body)): ?>
+        <?php if (isset($entry->response_body)): ?>
 
-            <code class="response-body"><?php echo htmlentities($entry->response->body); ?></code>
+            <code class="body-output"><?php echo htmlentities($entry->response_body); ?></code>
 
         <?php elseif (isset($entry->response->errors, $entry->response->error_data)):
 

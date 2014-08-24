@@ -37,23 +37,38 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
     public function column_default($item, $column_name)
     {
+
+        global $http_api_debug_page;
+
         switch ($column_name) {
             case 'log_id':
             case 'context':
             case 'transport':
             case 'log_time':
-                return $item[$column_name];
             case 'url':
-                return sprintf('<a href="%1$s" target="_blank">%1$s</a>', $item[$column_name] );
-            case 'args':
-            case 'response':
+                return $item[$column_name];
+                // return sprintf('<a href="%1$s" target="_blank">%1$s</a>', $item[$column_name] );
+                break;
+            case 'host':
+                $admin_url = remove_query_arg('paged');
+                $admin_url = remove_query_arg('log_id');
+                $admin_url = add_query_arg( 'domain', $item[$column_name] );
+                return sprintf('<a href="%1$s">%2$s</a>', $admin_url, $item[$column_name] );
+            case 'request_args':
                 return $this->json_column( $item['log_id'], $column_name, $item[$column_name] );
+            case 'request_body':
+            case 'response_body':
+                $body = $item[$column_name];
+                return empty($body) ? 'Not Sent' : ellipsis(htmlentities($body), 200, '&hellip;');
+            case 'request_headers':
+            case 'response_headers':
+                return $column_name;
             default:
                 return print_r($item[$column_name], true);
         }
     }
 
-    public function column_url($item)
+    public function column_request($item)
     {
         $actions = array(
             'view'   => sprintf('<a href="?page=%1$s&action=%2$s&log_id=%3$d" class="http-api-debug-details-action" data-log-id="%3$d">View Details</a>', $_REQUEST['page'], 'view', $item['log_id'] ),
@@ -62,7 +77,9 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         );
 
         return sprintf(
-            '%1$s%2$s',
+            '<span class="status status-%1$d">%1$d</span><span class="method">%2$s</span><span class="url">%3$s</span>%4$s',
+            $item['status'],
+            $item['method'],
             $item['url'],
             $this->row_actions($actions)
         );
@@ -95,6 +112,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         $columns = array_merge(
             array(
                 'cb'       => '<input type="checkbox" />',
+                'request'  => 'Request'
             ),
             $columns
         );
@@ -145,7 +163,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         $columns = $this->get_columns();
 
-        $hidden = array('log_id', 'context', 'transport', 'args');
+        $hidden = array('log_id', 'context', 'transport', 'request_args');
 
         if ( ! is_multisite()) {
             $hidden[] = 'site_id';

@@ -29,8 +29,8 @@ function display_log_table()
 
     <h2>HTTP API Debug Log</h2>
 
-    <p class="message" title="The size is the sum of the data in the table and the indexes on the table.">
-        Log Size: <strong><?php echo convert_bytes( table_size('http_api_debug_log'), false, 2 ); ?></strong>
+    <p class="message" title="The size is the sum of the data in the tables and the indexes on the tables.">
+        Log Size: <strong><?php echo convert_bytes( table_size('http_api_debug_log') + table_size('http_api_debug_log_headers'), false, 2 ); ?></strong>
     </p>
 
     <form id="http-api-debug-log-filter" method="get">
@@ -43,21 +43,10 @@ function display_log_table()
 
 function display_log_entry()
 {
-    global $wpdb;
-
-    $entry = $wpdb->get_results(
-        $wpdb->prepare(
-            "select * from {$wpdb->prefix}http_api_debug_log where log_id = %d limit 1",
-            $_REQUEST['log_id']
-        )
-    );
+    $entry = get_log_entry( $_REQUEST['log_id'] );
 
     if ( ! empty( $entry ) ) {
 
-        $entry = array_shift($entry);
-
-        if ( property_exists($entry, 'args') )
-            $entry->args = json_decode($entry->args);
 
         if ( property_exists($entry, 'response') )
             $entry->response = json_decode($entry->response);

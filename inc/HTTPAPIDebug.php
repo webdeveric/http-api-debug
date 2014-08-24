@@ -6,12 +6,14 @@ class HTTPAPIDebug
 {
     protected $version_db_key = 'http-api-debug-version';
     protected $db;
-    protected $table_name;
+    protected $log_table;
+    protected $headers_table;
 
     public function __construct($wpdb)
     {
         $this->db = &$wpdb;
-        $this->table_name = $this->db->prefix . "http_api_debug_log";
+        $this->log_table = $this->db->prefix . "http_api_debug_log";
+        $this->headers_table = $this->db->prefix . "http_api_debug_log_headers";
 
         register_activation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'activate') );
         register_deactivation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'deactivate') );
@@ -52,6 +54,8 @@ class HTTPAPIDebug
 
     public function install()
     {
+        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+
         $charset_collate = '';
 
         if ( ! empty( $this->db->charset ) ) {
@@ -62,24 +66,45 @@ class HTTPAPIDebug
             $charset_collate .= " COLLATE {$this->db->collate}";
         }
 
-        $sql = "CREATE TABLE $this->table_name (
+        $create_log_table = "CREATE TABLE {$this->log_table} (
             log_id BIGINT unsigned NOT NULL AUTO_INCREMENT,
             site_id BIGINT(20) unsigned NOT NULL default 0,
             blog_id BIGINT(20) unsigned NOT NULL default 0,
-            url TEXT NOT NULL,
             method varchar(10) not null default '',
-            args LONGTEXT NOT NULL,
-            response LONGTEXT NOT NULL,
-            status INT(3) UNSIGNED ZEROFILL,
+            host varchar(255) NOT NULL default '',
+            url varchar(2048) NOT NULL default '',
+            status INT(3) UNSIGNED ZEROFILL NOT NULL default 0,
+            request_args LONGTEXT NOT NULL,
+            request_body LONGTEXT NOT NULL,
+            response_data LONGTEXT NOT NULL,
+            response_body LONGTEXT NOT NULL,
             context varchar(32) NOT NULL default 'response',
             transport varchar(32) NOT NULL default '',
             log_time datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-            PRIMARY KEY  (log_id)
+            PRIMARY KEY  (log_id),
+            INDEX site_blog_ids (site_id, blog_id),
+            INDEX request_info (method, host, status)
         ) $charset_collate;";
 
-        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+        $create_headers_table = "CREATE TABLE {$this->headers_table} (
+            log_header_id BIGINT unsigned NOT NULL AUTO_INCREMENT,
+            log_id BIGINT unsigned,
+            header_type char(3) NOT NULL,
+            header_name varchar(64) NOT NULL default '',
+            header_value LONGTEXT NOT NULL,
+            PRIMARY KEY (log_header_id),
+            FOREIGN KEY (log_id) REFERENCES {$this->log_table} (log_id) ON DELETE cascade ON UPDATE cascade,
+            INDEX header_type (header_type),
+            INDEX header_name (header_name)            
+        ) $charset_collate;";
 
-        \dbDelta( $sql );
+        /*
+        $this->db->show_errors();
+        $this->db->print_error();
+        */
+
+        \dbDelta( $create_log_table );
+        \dbDelta( $create_headers_table );
 
         $this->set_db_version( $this->version() );
     }
@@ -90,7 +115,7 @@ class HTTPAPIDebug
     }
 
     public function update_db_check() {
-        if ( ! table_exists('http_api_debug_log') || version_compare($this->dbVersion(), $this->version(), '<')) {
+        if ( ! table_exists('http_api_debug_log') || ! table_exists('http_api_debug_log_headers') || version_compare($this->dbVersion(), $this->version(), '<')) {
             $this->install();
             if (current_filter() === 'plugins_loaded')
                 admin_notice('Updating DB for HTTP API Debug plugin.');
@@ -145,27 +170,86 @@ class HTTPAPIDebug
     public function http_api_debug($response, $context, $transport_class, $request_args, $url)
     {
         $log_this_entry = apply_filters('http_api_debug_record_log', true, $response, $context, $transport_class, $request_args, $url);
+        
+        $this->db->show_errors();
 
         if ( ! $log_this_entry)
             return;
 
-        $num_rows = $this->db->query( 
-            $this->db->prepare(
-                "insert into {$this->table_name}
-                    (site_id, blog_id, url, method, args, response, status, context, transport, log_time)
-                    values
-                    (%d, %d, %s, %s, %s, %s, %d, %s, %s, NOW())",
-                function_exists('get_current_site') ? get_current_site() : 0,
-                get_current_blog_id(),
-                $url,
-                isset($request_args['method']) ? $request_args['method'] : '',
-                json_encode($request_args),
-                json_encode($response),
-                $this->get_response_code($url, $response),
-                $context,
-                $transport_class
-            )
+        $request_method = '';
+        if (isset($request_args['method'])) {
+            $request_method = $request_args['method'];
+            unset($request_args['method']);
+        }
+
+        $request_headers = array();
+        if (isset($request_args['headers'])) {
+            $request_headers = $request_args['headers'];
+            unset($request_args['headers']);
+        }
+
+        $request_body = '';
+        if (isset($request_args['body'])) {
+            $request_body = $request_args['body'];
+            unset($request_args['body']);
+        }
+
+        $response_headers = array();
+        if (isset($response['headers'])) {
+            $response_headers = $response['headers'];
+            unset($response['headers']);
+        }
+
+        $response_body = '';
+        if (isset($response['body'])) {
+            $response_body = $response['body'];
+            unset($response['body']);
+        }
+
+        $request_args  = json_encode($request_args);
+        $response_data = json_encode($response);
+
+        $insert_log_entry = $this->db->prepare(
+            "insert into {$this->log_table}
+                (site_id, blog_id, method, host, url, status, request_args, request_body, response_data, response_body, context, transport, log_time)
+                values
+                (%d, %d, %s, %s, %s, %d, %s, %s, %s, %s, %s, %s, NOW())",
+            function_exists('get_current_site') ? \get_current_site() : 0,
+            get_current_blog_id(),
+            $request_method,
+            parse_url($url, PHP_URL_HOST),
+            $url,
+            $this->get_response_code($url, $response),
+            $request_args,
+            $request_body,
+            $response_data,
+            $response_body,
+            $context,
+            $transport_class
         );
+
+        $num_rows = $this->db->query( $insert_log_entry );
+
+        $log_id = $this->db->insert_id;
+
+        if ($log_id) {
+
+            foreach ( array('req' => &$request_headers, 'res' => &$response_headers) as $header_type => &$headers ) {
+                foreach ($headers as $header_name => &$header_value) {
+                    $this->db->query(
+                        $this->db->prepare(
+                            "insert into {$this->headers_table} (log_id, header_type, header_name, header_value) values (%d, %s, %s, %s)",
+                            $log_id,
+                            $header_type,
+                            $header_name,
+                            $header_value
+                        )
+                    );
+                }
+            }
+
+        }
+
     }
 
 }

@@ -6,7 +6,7 @@ Plugin URI: http://phplug.in/
 Author: Eric King
 Author URI: http://webdeveric.com/
 Description: Debug HTTP request
-Version: 0.1.3
+Version: 0.1.1
 */
 
 defined('ABSPATH') || exit;
@@ -30,6 +30,6 @@ if (version_compare(PHP_VERSION, '5.3.0', '<')) {
 }
 
 define('HTTP_API_DEBUG_FILE', __FILE__);
-define('HTTP_API_DEBUG_VERSION', '0.1.3');
+define('HTTP_API_DEBUG_VERSION', '0.1.1');
 
 include dirname(__FILE__) . '/http-api-debug.php';

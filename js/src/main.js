@@ -3,7 +3,7 @@
 
     $( function(){
 
-        $('.response-body').each( function (i, block) {
+        $('.body-output').each( function (i, block) {
             hljs.highlightBlock(block);
         } );
 
