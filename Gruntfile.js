@@ -121,10 +121,12 @@ module.exports = function( grunt ){
 		    }
 		},
         watch: {
-        	checkwpversion: {
-				files: ['readme.txt', 'package.json', '<%= pkg.name %>.php'],
-				tasks: ['checkwpversion']
-        	},
+        	/*
+            checkwpversion: {
+                files: ['readme.txt', 'package.json', '<%= pkg.name %>.php'],
+                tasks: ['checkwpversion']
+            },
+            */
             sass: {
                 files: ['sass/**/*.{scss,sass}'],
                 tasks: ['compass', 'cssmin']
