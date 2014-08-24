@@ -1,25 +1,31 @@
 @import "variables";
 @import "placeholders";
 
-.full-width{
-    display: block;
-    clear: both;
-    width: 100%;
-    box-sizing: border-box;
-}
-
 .log-entry{
+
+    .full-width{
+        display: block;
+        clear: both;
+        width: 100%;
+        margin: 0 0 $gutter-size 0;
+        box-sizing: border-box;
+    }
+
+    header{
+        margin:0 0 $gutter-size 0;
+    }
+
     section{
         display: inline-block;
         vertical-align: top;
-        margin:0 0 30px 0;
+        margin:0 0 $gutter-size 0;
 
         & + section{
-            margin-left:10px;
+            margin-left:$gutter-size;
         }
 
         h2{
-            margin:0 0 .33em 0;
+            margin:0 0 $gutter-size/3 0;
             padding:0;
             line-height: 1;
         }
@@ -72,12 +78,14 @@
     display: block;
     clear: both;
     background: #FFF;
+    font-size: 1.5em;
+    line-height: 1;
     @extend %shadowed;
 
     span{
         display: inline-block;
         vertical-align: top;
-        padding:4px 10px;
+        padding:$gutter-size/5 $gutter-size/3;
     }
 
     .method{
@@ -110,9 +118,15 @@
 
 }
 
-.response-body{
+.body-output{
+    display: block;
     background-color: #FFF;
     padding: 1em;
     white-space: pre;
     @extend %shadowed;
+
+    &:empty:before{
+        content: "Body is empty";
+        color: #333;
+    }
 }
