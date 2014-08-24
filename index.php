@@ -17,7 +17,7 @@ if (version_compare(PHP_VERSION, '5.3.0', '<')) {
 
         function http_api_debug_requirements_not_met()
         {
-            echo '<div class="error"><p>PHP 5.3+ is required for Luna Login. You have PHP ', PHP_VERSION, ' installed. This plugin has been deactivated.</p></div>';
+            echo '<div class="error"><p>PHP 5.3+ is required for HTTP API Debug. You have PHP ', PHP_VERSION, ' installed. This plugin has been deactivated.</p></div>';
             deactivate_plugins(plugin_basename(__FILE__));
             unset($_GET['activate']);
         }
