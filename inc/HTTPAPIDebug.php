@@ -41,7 +41,7 @@ class HTTPAPIDebug
             'update_plugins',
             $this->main_page_slug,
             array(&$this, 'admin_page'),
-            'dashicons-chart-bar'
+            'dashicons-info'            
         );
 
         \add_submenu_page(
