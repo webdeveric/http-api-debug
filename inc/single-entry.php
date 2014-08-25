@@ -41,48 +41,28 @@ namespace WDE\HTTPAPIDebug;
         <?php endif; ?>
     </section>
 
-    <section class="full-width">
-        <h2>Request Body</h2>
+    <?php foreach (array('response', 'request') as $r):
+        $body = $r . '_body';
+        $parsed = $body . '_parsed';
+    ?>
+        <section class="full-width">
+            <h2><?php echo ucfirst($r); ?> Body</h2>
 
-        <?php if (isset($entry->request_body)): ?>
-            <?php if (isset($entry->request_body_parsed)): ?>
-                <h3>Raw</h3>
+            <?php if (isset($entry->$body)): ?>
+                <?php if (isset($entry->$parsed)): ?>
+                    <h3>Raw</h3>
+                <?php endif; ?>
+                <code class="body-output"><?php echo htmlentities($entry->$body); ?></code>
+                    
+                <?php
+                    if (isset($entry->$parsed) && is_array($entry->$parsed))
+                        echo '<h3>Parsed</h3>', key_value_table($entry->$parsed);
+                ?>
+
             <?php endif; ?>
-            <code class="body-output"><?php echo htmlentities($entry->request_body); ?></code>
-                
-            <?php
-                if (isset($entry->request_body_parsed) && is_array($entry->request_body_parsed))
-                    echo '<h3>Parsed</h3>', key_value_table($entry->request_body_parsed);
-            ?>
 
-        <?php endif; ?>
+        </section>
 
-    </section>
-
-    <section class="full-width">
-        <h2>Response Body</h2>
-
-        <?php if (isset($entry->response_body)): ?>
-
-            <code class="body-output"><?php echo htmlentities($entry->response_body); ?></code>
-
-        <?php elseif (isset($entry->response->errors, $entry->response->error_data)):
-
-            $errors_types = (array)$entry->response->errors;
-            ?>
-            <dl>
-            <?php
-                foreach ($errors_types as $error_type => &$error_messages) {
-                    echo '<dt>', $error_type, '</dt><dd><ul>';
-                    foreach ($error_messages as $error_key => &$error) {
-                        printf('<li>%s</li>', $error);
-                    }
-                    echo '</ul></dd>';
-                }
-            ?>
-            </dl>
-        <?php endif; ?>
-
-    </section>
+    <?php endforeach; ?>
 
 </article>

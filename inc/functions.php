@@ -251,6 +251,9 @@ function get_log_entry($log_id)
         )
     );
 
+    if (count($entry) === 0)
+        return false;
+
     $entry = array_shift($entry);
 
     if ( property_exists($entry, 'request_args') )

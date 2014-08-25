@@ -4,11 +4,30 @@ namespace WDE\HTTPAPIDebug;
 
 function format_log_entry($entry)
 {
-    if (isset($entry->request_headers, $entry->request_headers['Content-Type'], $entry->request_body) && $entry->request_body !== '') {
-        if (get_content_type($entry->request_headers['Content-Type']) == 'application/x-www-form-urlencoded') {
-            parse_str($entry->request_body, $entry->request_body_parsed);
+    foreach (array('response', 'request') as $r) {
+        $headers = $r . '_headers';
+        $headers = $entry->$headers;
+        $body    = $r . '_body';
+        $parsed  = $body . '_parsed';
+
+        if (isset($headers['content-type'], $entry->$body) && $entry->$body !== '') {
+            
+            switch ( get_content_type( $headers['content-type'] ) ) {
+                case 'application/x-www-form-urlencoded':
+                    parse_str($entry->$body, $entry->$parsed);
+                    break;
+                case 'application/json':
+                    $entry->$parsed = json_decode( $entry->$body, true );
+                    break;
+                case 'application/xml':
+                    $parser = xml_parser_create();
+                    xml_parse_into_struct($parser, $entry->$body, $entry->$parsed );
+                    xml_parser_free($parser);
+                    break;
+            }
         }
     }
+
     return $entry;
 }
 add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry', 10, 1 );

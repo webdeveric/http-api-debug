@@ -37,9 +37,6 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
     public function column_default($item, $column_name)
     {
-
-        global $http_api_debug_page;
-
         switch ($column_name) {
             case 'log_id':
             case 'context':
@@ -47,19 +44,17 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             case 'log_time':
             case 'url':
                 return $item[$column_name];
-                // return sprintf('<a href="%1$s" target="_blank">%1$s</a>', $item[$column_name] );
-                break;
             case 'host':
                 $admin_url = remove_query_arg('paged');
                 $admin_url = remove_query_arg('log_id');
-                $admin_url = add_query_arg( 'domain', $item[$column_name] );
+                $admin_url = add_query_arg( 'host', $item[$column_name] );
                 return sprintf('<a href="%1$s">%2$s</a>', $admin_url, $item[$column_name] );
             case 'request_args':
                 return $this->json_column( $item['log_id'], $column_name, $item[$column_name] );
             case 'request_body':
             case 'response_body':
                 $body = $item[$column_name];
-                return empty($body) ? 'Not Sent' : ellipsis(htmlentities($body), 200, '&hellip;');
+                return empty($body) ? 'Not Sent' : substr(htmlentities($body), 0, 200);
             case 'request_headers':
             case 'response_headers':
                 return $column_name;
@@ -68,18 +63,16 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         }
     }
 
-    public function column_request($item)
+    public function column_url($item)
     {
         $actions = array(
             'view'   => sprintf('<a href="?page=%1$s&action=%2$s&log_id=%3$d" class="http-api-debug-details-action" data-log-id="%3$d">View Details</a>', $_REQUEST['page'], 'view', $item['log_id'] ),
             'delete' => sprintf('<a href="?page=%1$s&action=%2$s&log_id=%3$d" class="http-api-debug-delete-action" data-log-id="%3$d">Delete</a>', $_REQUEST['page'], 'delete', $item['log_id'] ),
-            'visit'  => sprintf('<a href="%1$s" target="_blank" class="http-api-debug-visit-action" data-log-id="%2$d">Visit URL</a>', $item['url'], $item['log_id'] )
+            // 'visit'  => sprintf('<a href="%1$s" target="_blank" class="http-api-debug-visit-action" data-log-id="%2$d">Visit URL</a>', $item['url'], $item['log_id'] )
         );
 
         return sprintf(
-            '<span class="status status-%1$d">%1$d</span><span class="method">%2$s</span><span class="url">%3$s</span>%4$s',
-            $item['status'],
-            $item['method'],
+            '<span class="url">%1$s</span>%2$s',
             $item['url'],
             $this->row_actions($actions)
         );
@@ -112,7 +105,6 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         $columns = array_merge(
             array(
                 'cb'       => '<input type="checkbox" />',
-                'request'  => 'Request'
             ),
             $columns
         );
@@ -139,6 +131,21 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         return $actions;
     }
 
+    public function extra_tablenav( $which )
+    {
+        if ($which === 'top'):
+        ?>
+            <span class="log-size" title="The size is the sum of the data in the tables and the indexes on the tables.">
+                Log Size: <strong><?php echo convert_bytes( table_size('http_api_debug_log') + table_size('http_api_debug_log_headers'), false, 2 ); ?></strong>
+            </span>
+        <?php
+        endif;
+    }
+
+    public function no_items() {
+        _e( 'No log entries found.' );
+    }
+
     public function process_bulk_action()
     {
         if ( $this->current_action() === 'delete' ) {
@@ -154,7 +161,22 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         $current_page = $this->get_pagenum();
 
-        $total_items = (int)$wpdb->get_var("select count(*) from {$wpdb->prefix}http_api_debug_log");
+        $total_items = 0;
+
+        if ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
+
+            $total_items = (int)$wpdb->get_var(
+                $wpdb->prepare(
+                    "select count(*) from {$wpdb->prefix}http_api_debug_log where host = %s",
+                    $_REQUEST['host']
+                )
+            );
+
+        } else {
+
+            $total_items = (int)$wpdb->get_var("select count(*) from {$wpdb->prefix}http_api_debug_log");
+
+        }
 
         if ($per_page * $current_page > $total_items)
             admin_notice( ($per_page * $current_page) . ' > ' . $total_items );
@@ -185,10 +207,26 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             $order = $_REQUEST['order'];
         }
 
-        $data = $wpdb->get_results(
-            "select * from {$wpdb->prefix}http_api_debug_log order by {$order_by} {$order} limit {$page_offset}, {$per_page}",
-            'ARRAY_A'
-        );
+        $data = array();
+
+        if ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
+
+            $data = $wpdb->get_results(
+                $wpdb->prepare(
+                    "select * from {$wpdb->prefix}http_api_debug_log where host = %s order by {$order_by} {$order} limit {$page_offset}, {$per_page}",
+                    $_REQUEST['host']
+                ),
+                'ARRAY_A'
+            );
+
+        } else {
+
+            $data = $wpdb->get_results(
+                "select * from {$wpdb->prefix}http_api_debug_log order by {$order_by} {$order} limit {$page_offset}, {$per_page}",
+                'ARRAY_A'
+            );
+
+        }
 
         $this->items = $data;
 

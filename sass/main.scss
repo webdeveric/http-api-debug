@@ -1,6 +1,12 @@
 @import "variables";
 @import "placeholders";
 
+.log-size{
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 30px;
+}
+
 .log-entry{
 
     .full-width{
@@ -78,8 +84,6 @@
     display: block;
     clear: both;
     background: #FFF;
-    font-size: 1.5em;
-    line-height: 1;
     @extend %shadowed;
 
     span{

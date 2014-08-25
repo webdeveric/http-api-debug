@@ -4,16 +4,20 @@ namespace WDE\HTTPAPIDebug;
 
 class HTTPAPIDebug
 {
-    protected $version_db_key = 'http-api-debug-version';
     protected $db;
+    protected $version_db_key;
     protected $log_table;
     protected $headers_table;
+    protected $main_page_hook;
+    protected $main_page_slug;
 
     public function __construct($wpdb)
     {
-        $this->db = &$wpdb;
-        $this->log_table = $this->db->prefix . "http_api_debug_log";
-        $this->headers_table = $this->db->prefix . "http_api_debug_log_headers";
+        $this->db             = &$wpdb;
+        $this->version_db_key = 'http-api-debug-version';
+        $this->log_table      = $this->db->prefix . "http_api_debug_log";
+        $this->headers_table  = $this->db->prefix . "http_api_debug_log_headers";
+        $this->main_page_slug = 'http-api-debug';
 
         register_activation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'activate') );
         register_deactivation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'deactivate') );
@@ -24,6 +28,168 @@ class HTTPAPIDebug
 
         add_action( 'plugins_loaded', array(&$this, 'update_db_check') );
         add_action( 'http_api_debug', array(&$this, 'http_api_debug'), 10, 5);
+        add_action( 'admin_menu', array(&$this, 'admin_menu'), 10, 0);
+        
+        add_filter( 'admin_footer_text', array(&$this, 'admin_footer_text'), PHP_INT_MAX, 1);
+    }
+
+    public function admin_menu()
+    {
+        $this->main_page_hook = \add_menu_page(
+            'HTTP API Debug',
+            'HTTP API Debug',
+            'update_plugins',
+            $this->main_page_slug,
+            array(&$this, 'admin_page'),
+            'dashicons-chart-bar'
+        );
+
+        \add_submenu_page(
+            $this->main_page_slug,
+            'HTTP API Debug Options',
+            'Options',
+            'update_plugins',
+            'http-api-debug-options',
+            array(&$this, 'options_admin_page')
+        );
+
+        add_action('admin_print_styles', array(&$this, 'admin_styles') );
+        add_action('admin_print_scripts', array(&$this, 'admin_scripts') );
+        add_action('load-' . $this->main_page_hook, array(&$this, 'screen_options') );
+
+    }
+
+    protected function is_http_api_debug_admin_page()
+    {
+        static $is_admin_page;
+
+        if ( ! isset($is_admin_page) ) {
+            $screen = \get_current_screen();
+            $is_admin_page = $screen->base === $this->main_page_hook || str_starts_with($screen->base, 'http-api-debug_page');
+        }
+
+        return $is_admin_page;
+    }
+
+    public function admin_styles()
+    {
+        if ($this->is_http_api_debug_admin_page()) {
+            wp_enqueue_style('highlightjs', '//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.2/styles/default.min.css', array(), null);
+            wp_enqueue_style('http-api-debug', plugins_url('/css/dist/main.min.css', HTTP_API_DEBUG_FILE), array(), HTTP_API_DEBUG_VERSION);
+        }
+    }
+
+    public function admin_scripts()
+    {
+        if ($this->is_http_api_debug_admin_page()) {
+            wp_enqueue_script('highlightjs', '//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.2/highlight.min.js', array(), null);
+            wp_enqueue_script('http-api-debug', plugins_url('/js/dist/main.min.js', HTTP_API_DEBUG_FILE), array(), HTTP_API_DEBUG_VERSION);
+        }
+    }
+
+    public function admin_page()
+    {
+        $valid_actions = array(
+            'view',
+            // 'delete'
+        );
+
+        $action = '';
+
+        if ( isset( $_REQUEST['action'] ) && in_array($_REQUEST['action'], $valid_actions) )
+            $action = $_REQUEST['action'];
+
+        echo '<div class="wrap">';
+
+        switch ($action) {
+            case 'view':
+                $this->display_log_entry();
+                break;
+            /*
+            case 'delete':
+                delete_log_entry_confirm();
+                break;
+            */
+            default:
+                $this->main_admin_page();
+        }
+
+        echo '</div>';
+    }
+
+    public function main_admin_page()
+    {
+        include __DIR__ . '/HTTPAPIDebugLogTable.php';
+
+        $log_table = new HTTPAPIDebugLogTable();
+        $log_table->prepare_items();
+        ?>
+        <div class="wrap">
+            <h2>
+                HTTP API Debug Log
+                <?php
+                if ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
+                    echo ': ' . esc_html( $_REQUEST['host'] );
+                }
+                ?>
+            </h2>
+            <form id="http-api-debug-log-filter" method="get">
+                <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>" />
+                <?php $log_table->display(); ?>
+            </form>
+        </div>
+        <?php
+    }
+
+    public function display_log_entry()
+    {
+        $entry = get_log_entry( $_REQUEST['log_id'] );
+
+        if ( is_object( $entry ) ) {
+
+            if ( property_exists($entry, 'response') )
+                $entry->response = json_decode($entry->response);
+
+            $entry = apply_filters('http_api_debug_log_entry', $entry);
+
+            if (isset($entry))
+                include __DIR__ . '/single-entry.php';
+
+        } else {
+
+            echo '<h1>Entry not found</h1>';
+            printf('<p><a href="%s">Go back</a></p>', admin_url('tools.php?page=http-api-debug'));
+
+        }
+
+    }
+
+
+    public function options_admin_page()
+    {
+        echo 'options';
+    }
+
+    public function screen_options()
+    {
+        $screen = get_current_screen();
+        if( ! is_object($screen) || $screen->base != $this->main_page_hook )
+           return;
+
+        $args = array(
+            'label'   => 'Log entries per page',
+            'default' => 20,
+            'option'  => 'http_api_debug_log_per_page'
+        );
+
+        \add_screen_option( 'per_page', $args );
+    }
+
+    public function admin_footer_text($text)
+    {
+        if ($this->is_http_api_debug_admin_page())
+            return sprintf('HTTP Debug API Version %1$s', $this->version() );
+        return $text;
     }
 
     public function version()
@@ -40,12 +206,10 @@ class HTTPAPIDebug
     {
         $this->update_db_check();
 
-        if (str_starts_with(current_filter(), 'activate')) {
-        	// Fire off a quick request so that there is something in the log table after you activate.
-        	\wp_remote_get('http://ip.phplug.in/');
-        	\wp_remote_get('http://ip.phplug.in/?output=json');
-        	\wp_remote_get('http://ip.phplug.in/?output=xml');
-        }
+        // Fire off a few requests so that there is something in the log table after you activate.
+        \wp_remote_get('http://ip.phplug.in/');
+        \wp_remote_get('http://ip.phplug.in/?output=json');
+        \wp_remote_get('http://ip.phplug.in/?output=xml');
     }
 
     public function deactivate()
@@ -206,7 +370,8 @@ class HTTPAPIDebug
             unset($response['body']);
         }
 
-        $request_args  = json_encode($request_args);
+        $request_args = json_encode($request_args);
+
         $response_data = json_encode($response);
 
         $insert_log_entry = $this->db->prepare(
@@ -241,7 +406,7 @@ class HTTPAPIDebug
                             "insert into {$this->headers_table} (log_id, header_type, header_name, header_value) values (%d, %s, %s, %s)",
                             $log_id,
                             $header_type,
-                            $header_name,
+                            strtolower($header_name),
                             $header_value
                         )
                     );

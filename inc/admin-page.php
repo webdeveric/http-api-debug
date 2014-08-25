@@ -29,10 +29,6 @@ function display_log_table()
 
     <h2>HTTP API Debug Log</h2>
 
-    <p class="message" title="The size is the sum of the data in the tables and the indexes on the tables.">
-        Log Size: <strong><?php echo convert_bytes( table_size('http_api_debug_log') + table_size('http_api_debug_log_headers'), false, 2 ); ?></strong>
-    </p>
-
     <form id="http-api-debug-log-filter" method="get">
         <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>" />
         <?php $log_table->display(); ?>
