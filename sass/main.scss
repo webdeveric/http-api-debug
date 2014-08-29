@@ -132,6 +132,11 @@
             background-color: $light-yellow;
         }
 
+        &.expanded{
+            span{
+                padding:6px;
+            }
+        }
     }
 
 }
