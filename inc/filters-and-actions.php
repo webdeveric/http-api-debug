@@ -39,6 +39,93 @@ function format_log_entry($entry)
 add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry', 10, 1 );
 
 
+function format_log_entry_url($entry)
+{
+    $parse_url_parts = array(
+        'scheme'   => array('after' => '://'),
+        'user'     => array(
+            'after' => array(
+                'field' => 'pass',
+                'empty' => true,
+                'content' => '@'
+            )
+        ),
+        'pass'     => array(
+            'before' => array(
+                'field' => 'user',
+                'empty' => false,
+                'content' => ':'
+            ),
+            'after' => '@'
+        ),
+        'host'     => '',
+        'port'     => array('before' => ':'),
+        'path'     => '',
+        'query'    => array('before' => '?'),
+        'fragment' => array('before' => '#')
+    );
+
+    $default_parse_url_parts = array_combine(
+        array_keys($parse_url_parts),
+        array_fill(0, count($parse_url_parts), '')
+    );
+
+    $parts = array_merge(
+        $default_parse_url_parts,
+        parse_url($entry->url)
+    );
+
+    $url_parts = array();
+
+    foreach ( $parse_url_parts as $part => $extra ) {
+        if ( array_key_exists($part, $parts) && ! empty( $parts[ $part ] ) ) {
+
+            $part_html = sprintf( '<span class="%1$s" data-tooltip="%1$s">%2$s</span>', $part, $parts[ $part ] );
+
+            if ( is_array( $extra ) ) {
+
+                $formats = array(
+                    'before' => '<span class="separator separator-before separator-%1$s">%2$s</span>%3$s',
+                    'after'  => '%3$s<span class="separator separator-after separator-%1$s">%2$s</span>'
+                );
+
+                foreach ( $formats as $position => $format ) {
+
+                    if ( isset( $extra[ $position ] ) && ! empty( $extra[ $position ] ) ) {
+
+                        $extra_content = $extra[ $position ];
+
+                        if ( is_array( $extra_content ) ) {
+                             
+                            if ( isset( $extra_content['field'], $parts[ $extra_content['field'] ] ) && empty( $parts[ $extra_content['field'] ] ) == $extra_content['empty'] ) {
+
+                                $part_html = sprintf( $format, $part, $extra_content['content'], $part_html );
+
+                            }
+
+                        } else {
+
+                            $part_html = sprintf( $format, $part, $extra_content, $part_html );
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            $url_parts[] = $part_html;
+        }
+    }
+
+    $entry->url = implode('', $url_parts);
+
+    return $entry;
+}
+add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry_url', 10, 2 );
+
+
 // This is a simple example. There will be an options page in the admin where user can input the domains to ignore.
 function dont_log_these_urls($record_log, $response, $context, $transport_class, $request_args, $url)
 {
