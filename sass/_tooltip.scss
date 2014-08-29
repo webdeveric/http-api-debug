@@ -1,0 +1,44 @@
+@import "compass/css3/images";
+
+[data-tooltip]{
+    position: relative;
+
+    &:after{
+        content: attr(data-tooltip);
+        position: absolute;
+        top: 0;
+        left:50%;
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0;
+        min-width: 4em;
+        margin: 0 0 0 -3em;
+        padding: 0 1em;
+        text-transform: capitalize;
+        text-align: center;
+        font-weight: normal;
+        font-size: 11px;
+        line-height: 1.8;
+        vertical-align: middle;
+        white-space: nowrap;
+        background-color: $tooltip-bg;
+        @include background( linear-gradient( $tooltip-bg, darken($tooltip-bg, 6%) ) );
+        color: $tooltip-color;
+        text-shadow: 1px 1px 0 #FFF;
+        box-shadow:0 .5px 1.75px rgba(0,0,0,.33);
+        border-radius: 3px;
+        @include transform( scale(0) );
+        @include transition( all ease-out 200ms );
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    &:hover:after{
+        opacity: 1;
+        z-index: 100;
+        top: 120%;
+        @include transform( scale(1) );
+    }
+
+}

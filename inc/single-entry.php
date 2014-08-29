@@ -6,9 +6,9 @@ namespace WDE\HTTPAPIDebug;
     <header>
         <h1>Log Entry #<?php echo intval($entry->log_id); ?> @ <time datetime="<?php echo \esc_attr($entry->log_time); ?>"><?php echo $entry->log_time; ?></time></h1>
         <div class="log-entry-meta">
-            <span class="status status-<?php echo $entry->status; ?>">
+            <span class="status status-<?php echo $entry->status; ?>" data-tooltip="HTTP Status Code">
                 <?php echo $entry->status; ?>
-            </span><span class="method">
+            </span><span class="method" data-tooltip="HTTP Method">
                 <?php echo $entry->method; ?>
             </span><span class="url">
                 <?php echo $entry->url; ?>

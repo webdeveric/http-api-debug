@@ -1,5 +1,9 @@
+@import "compass/css3/transform";
+@import "compass/css3/transition";
+
 @import "variables";
 @import "placeholders";
+@import "tooltip";
 
 .log-size{
     display: inline-block;
@@ -86,19 +90,15 @@
     background: #FFF;
     @extend %shadowed;
 
-    span{
-        display: inline-block;
-        vertical-align: top;
-        padding:$gutter-size/5 $gutter-size/3;
-    }
-
     .method{
+        @extend %log-entry-meta-box;
         text-transform: uppercase;
         font-weight: bold;
         background:#F8F8F8;
     }
 
     .status{
+        @extend %log-entry-meta-box;
         background: $table-row-alt-color;
         color: #FFF;
         font-weight: bold;
@@ -118,6 +118,20 @@
     }
 
     [class*="status-404"]{
+    }
+
+    .url{
+        @extend %log-entry-meta-box;
+
+        span{
+            position: relative;
+            @include transition( all ease-in-out 250ms );
+        }
+
+        span:not(.separator):hover{
+            background-color: $light-yellow;
+        }
+
     }
 
 }

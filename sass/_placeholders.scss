@@ -1,3 +1,9 @@
 %shadowed{
     box-shadow: 1px 1px 1px 0 #DFDFDF;
 }
+
+%log-entry-meta-box{
+    display: inline-block;
+    vertical-align: top;
+    padding:$gutter-size/5 $gutter-size/3;
+}
