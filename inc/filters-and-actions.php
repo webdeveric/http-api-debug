@@ -20,9 +20,15 @@ function format_log_entry($entry)
                     $entry->$parsed = json_decode( $entry->$body, true );
                     break;
                 case 'application/xml':
+                case 'application/atom+xml':
+                case 'application/rss+xml':
+                case 'text/xml':
                     $parser = xml_parser_create();
                     xml_parse_into_struct($parser, $entry->$body, $entry->$parsed );
                     xml_parser_free($parser);
+                    break;
+                case 'text/yaml' && function_exists('yaml_parse'):
+                    $entry->$parsed = yaml_parse( $entry->$body, -1 );
                     break;
             }
         }
@@ -33,6 +39,7 @@ function format_log_entry($entry)
 add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry', 10, 1 );
 
 
+// This is a simple example. There will be an options page in the admin where user can input the domains to ignore.
 function dont_log_these_urls($record_log, $response, $context, $transport_class, $request_args, $url)
 {
     if ( in_array( parse_url($url, PHP_URL_HOST), array('api.wordpress.org', 'rizzo.lonelyplanet.com') ) )
