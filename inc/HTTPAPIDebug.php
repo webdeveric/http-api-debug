@@ -164,7 +164,6 @@ class HTTPAPIDebug
 
     }
 
-
     public function options_admin_page()
     {
         echo 'options';
@@ -173,16 +172,28 @@ class HTTPAPIDebug
     public function screen_options()
     {
         $screen = get_current_screen();
+
         if( ! is_object($screen) || $screen->base != $this->main_page_hook )
            return;
 
-        $args = array(
-            'label'   => 'Log entries per page',
-            'default' => 20,
-            'option'  => 'http_api_debug_log_per_page'
-        );
+        if ( array_key_exists('log_id', $_REQUEST ) ) {
+            
+            if ( (int)$_REQUEST['log_id'] > 0 ) {
+                // Screen options for viewing single log entry go here.
+            }
 
-        \add_screen_option( 'per_page', $args );
+        } else {
+
+            \add_screen_option(
+                'per_page',
+                array(
+                    'label'   => 'Log entries per page',
+                    'default' => 20,
+                    'option'  => 'http_api_debug_log_per_page'
+                )
+            );
+
+        }
     }
 
     public function admin_footer_text($text)
