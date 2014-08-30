@@ -146,7 +146,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
     {
         if ($which === 'top'):
         ?>
-            <span class="log-size" title="The size is the sum of the data in the tables and the indexes on the tables.">
+            <span class="log-size tooltip-top" data-tooltip="The size is the sum of the data in the tables and the indexes on the tables.">
                 Log Size: <strong><?php echo convert_bytes( table_size('http_api_debug_log') + table_size('http_api_debug_log_headers'), false, 2 ); ?></strong>
             </span>
         <?php

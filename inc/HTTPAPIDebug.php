@@ -100,6 +100,7 @@ class HTTPAPIDebug
             $action = $_REQUEST['action'];
 
         echo '<div class="wrap">';
+        echo '<h1><a href="', menu_page_url( isset($_REQUEST['page']) ? $_REQUEST['page'] : '', false), '" data-tooltip="Go back to the HTTP API debug log" class="tooltip tooltip-right">HTTP API Debug Log</a></h1>';
 
         switch ($action) {
             case 'view':
@@ -124,36 +125,32 @@ class HTTPAPIDebug
         $log_table = new HTTPAPIDebugLogTable();
         $log_table->prepare_items();
         ?>
-        <div class="wrap">
-            <h2>
-                HTTP API Debug Log
-                <?php
+        <h2>
+            <a href="<?php menu_page_url( isset($_REQUEST['page']) ? $_REQUEST['page'] : ''); ?>" data-tooltip="Go back to the HTTP API debug log" class="tooltip tooltip-bottom">HTTP API Debug Log</a>
+            <?php
 
-                if ( array_key_exists('s', $_REQUEST) && ! empty( $_REQUEST['s'] ) ) {
+            if ( array_key_exists('s', $_REQUEST) && ! empty( $_REQUEST['s'] ) ) {
 
-                    printf('<span class="subtitle">Search: <strong>%s</strong></span>', esc_html( $_REQUEST['s'] ) );
+                printf('<span class="subtitle">Search: <strong>%s</strong></span>', esc_html( $_REQUEST['s'] ) );
 
-                } elseif ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
+            } elseif ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
 
-                    printf('<span class="subtitle">Host: <strong>%s</strong></span>', esc_html( $_REQUEST['host'] ) );
+                printf('<span class="subtitle">Host: <strong>%s</strong></span>', esc_html( $_REQUEST['host'] ) );
 
-                }
+            }
 
-                ?>
-            </h2>
+            ?>
+        </h2>
 
-            <?php $log_table->views(); ?>
+        <?php $log_table->views(); ?>
 
-            <form id="http-api-debug-log-filter" method="get" action="">
-                <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>" />
-                <?php
-                    $log_table->search_box( 'Search', 'http-api-debug' );
-                    $log_table->display();
-                ?>
-            </form>
-
-
-        </div>
+        <form id="http-api-debug-log-filter" method="get" action="">
+            <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>" />
+            <?php
+                $log_table->search_box( 'Search', 'http-api-debug' );
+                $log_table->display();
+            ?>
+        </form>
         <?php
     }
 
