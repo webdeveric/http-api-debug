@@ -99,8 +99,11 @@ class HTTPAPIDebug
         if ( isset( $_REQUEST['action'] ) && in_array($_REQUEST['action'], $valid_actions) )
             $action = $_REQUEST['action'];
 
-        echo '<div class="wrap">';
-        echo '<h1><a href="', menu_page_url( isset($_REQUEST['page']) ? $_REQUEST['page'] : '', false), '" data-tooltip="Go back to the HTTP API debug log" class="tooltip tooltip-right">HTTP API Debug Log</a></h1>';
+        $home_url = menu_page_url( isset($_REQUEST['page']) ? $_REQUEST['page'] : '', false );
+
+        $header_links = array();
+
+        ob_start();
 
         switch ($action) {
             case 'view':
@@ -113,9 +116,13 @@ class HTTPAPIDebug
             */
             default:
                 $this->main_admin_page();
+                $header_links[] = '<a href="#" class="add-new-h2">Test URL</a>';
         }
 
-        echo '</div>';
+        $content = ob_get_clean();
+
+        include __DIR__ . '/main-page.php';
+
     }
 
     public function main_admin_page()
@@ -124,9 +131,12 @@ class HTTPAPIDebug
 
         $log_table = new HTTPAPIDebugLogTable();
         $log_table->prepare_items();
+
+        if (array_key_exists('s', $_REQUEST) || array_key_exists('host', $_REQUEST)):
         ?>
-        <h2>
-            <a href="<?php menu_page_url( isset($_REQUEST['page']) ? $_REQUEST['page'] : ''); ?>" data-tooltip="Go back to the HTTP API debug log" class="tooltip tooltip-bottom">HTTP API Debug Log</a>
+
+        <h3>
+            <a href="<?php menu_page_url( isset($_REQUEST['page']) ? $_REQUEST['page'] : ''); ?>">Log Entries</a>
             <?php
 
             if ( array_key_exists('s', $_REQUEST) && ! empty( $_REQUEST['s'] ) ) {
@@ -140,9 +150,13 @@ class HTTPAPIDebug
             }
 
             ?>
-        </h2>
+        </h3>
 
-        <?php $log_table->views(); ?>
+        <?php
+        endif;
+
+        $log_table->views();
+        ?>
 
         <form id="http-api-debug-log-filter" method="get" action="">
             <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>" />
@@ -268,7 +282,7 @@ class HTTPAPIDebug
             response_body LONGTEXT NOT NULL,
             context varchar(32) NOT NULL default 'response',
             transport varchar(32) NOT NULL default '',
-            log_time datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+            log_time datetime(6) NOT NULL DEFAULT '0000-00-00 00:00:00',
             PRIMARY KEY  (log_id),
             INDEX site_blog_ids (site_id, blog_id),
             INDEX request_info (method, host, status)
@@ -402,7 +416,7 @@ class HTTPAPIDebug
             "insert into {$this->log_table}
                 (site_id, blog_id, method, host, url, status, request_args, request_body, response_data, response_body, context, transport, log_time)
                 values
-                (%d, %d, %s, %s, %s, %d, %s, %s, %s, %s, %s, %s, NOW())",
+                (%d, %d, %s, %s, %s, %d, %s, %s, %s, %s, %s, %s, NOW(6))",
             function_exists('get_current_site') ? \get_current_site() : 0,
             get_current_blog_id(),
             $request_method,

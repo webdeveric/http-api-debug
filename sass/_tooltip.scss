@@ -3,7 +3,7 @@
 [data-tooltip]{
     position: relative;
 
-    &:after{
+    &::after{
         content: attr(data-tooltip);
         position: absolute;
         top: 0;
@@ -29,30 +29,30 @@
         -moz-osx-font-smoothing: grayscale;
     }
 
-    &:hover:after{
+    &:hover::after{
         @extend %show-tooltip;
     }
 
 }
 
-.tooltip-top:hover:after{
+.tooltip-top:hover::after{
     top: auto;
     bottom: 100%;
     margin-top: 0;
     margin-bottom: $tooltip-spacing/2;
 }
 
-.tooltip-right:hover:after{
+.tooltip-right:hover::after{
     top:50%;
     margin:-$tooltip-spacing 0 0 $tooltip-spacing;
     left:100%;
 }
 
-.tooltip-bottom:hover:after{
+.tooltip-bottom:hover::after{
     @extend %show-tooltip;
 }
 
-.tooltip-left:hover:after{
+.tooltip-left:hover::after{
     top:50%;
     margin:-$tooltip-spacing $tooltip-spacing 0 0;
     left:auto;

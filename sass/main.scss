@@ -5,6 +5,14 @@
 @import "placeholders";
 @import "tooltip";
 
+.http-api-debug{
+    h1, h2, h3, h4, h5, h6{
+        a{
+            text-decoration: none;
+        }
+    }
+}
+
 .log-size{
     display: inline-block;
     vertical-align: middle;
@@ -89,6 +97,59 @@
     clear: both;
     background: #FFF;
     @extend %shadowed;
+
+    .log-nav{
+        @extend %log-entry-meta-box;
+        position: relative;
+        width:20px;
+        background-color: $log-nav-bg;
+        outline: none;
+
+        span{
+            display: block;
+            width:100%;
+            white-space: nowrap;
+            text-indent: 200%;
+            overflow: hidden;
+        }
+
+        &::before{
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin:-6px 0 0 -6px;
+            text-indent: 0;
+        }
+
+        &.log-nav-prev{
+            &::before{
+                border-width: 6px 12px 6px 0;
+                border-style: solid;
+                border-color: transparent $log-nav-color transparent transparent;
+            }
+            &:hover::before{
+                border-right-color: darken($log-nav-color, 15%);
+            }
+        }
+
+        &.log-nav-next{
+            &::before{
+                border-width: 6px 0 6px 12px;
+                border-style: solid;
+                border-color: transparent transparent transparent $log-nav-color;
+            }
+            &:hover::before{
+                border-left-color: darken($log-nav-color, 15%);
+            }
+        }
+
+        &:focus,
+        &:active,
+        &:hover{
+            background-color: lighten($log-nav-bg, 6%);
+        }
+    }
 
     .method{
         @extend %log-entry-meta-box;

@@ -265,6 +265,46 @@ function get_log_entry($log_id)
     return $entry;
 }
 
+function get_adjacent_log_id($log_id, $prev = true)
+{
+    global $wpdb;
+
+    $comparison = $prev ? '<=' : '>=';
+    $order      = $prev ? 'DESC' : 'ASC';
+
+    $adjacent_log_id = $wpdb->get_var(
+        $sql = $wpdb->prepare(
+            "select log_id from {$wpdb->prefix}http_api_debug_log where log_time {$comparison} (select log_time from {$wpdb->prefix}http_api_debug_log where log_id = %d) and log_id <> %d order by log_time {$order} limit 1",
+            $log_id,
+            $log_id
+        )
+    );
+
+    return $adjacent_log_id;
+}
+
+function get_adjacent_log_entry_url($log_id, $prev)
+{
+    $adjacent_log_id = get_adjacent_log_id($log_id, $prev);
+    if ( isset( $adjacent_log_id ) ) {
+        $url = remove_query_arg('log_id');
+        $url = add_query_arg('log_id', $adjacent_log_id);
+        return $url;
+    }
+    return false;
+}
+
+function get_prev_log_entry_url($log_id)
+{
+    return get_adjacent_log_entry_url($log_id, true);
+}
+
+function get_next_log_entry_url($log_id)
+{
+    return get_adjacent_log_entry_url($log_id, false);
+}
+
+
 function get_log_entry_headers($log_id, $header_type)
 {
     global $wpdb;
