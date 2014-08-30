@@ -128,15 +128,31 @@ class HTTPAPIDebug
             <h2>
                 HTTP API Debug Log
                 <?php
-                if ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
-                    echo ': ' . esc_html( $_REQUEST['host'] );
+
+                if ( array_key_exists('s', $_REQUEST) && ! empty( $_REQUEST['s'] ) ) {
+
+                    printf('<span class="subtitle">Search: <strong>%s</strong></span>', esc_html( $_REQUEST['s'] ) );
+
+                } elseif ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
+
+                    printf('<span class="subtitle">Host: <strong>%s</strong></span>', esc_html( $_REQUEST['host'] ) );
+
                 }
+
                 ?>
             </h2>
-            <form id="http-api-debug-log-filter" method="get">
+
+            <?php $log_table->views(); ?>
+
+            <form id="http-api-debug-log-filter" method="get" action="">
                 <input type="hidden" name="page" value="<?php echo esc_attr($_REQUEST['page']); ?>" />
-                <?php $log_table->display(); ?>
+                <?php
+                    $log_table->search_box( 'Search', 'http-api-debug' );
+                    $log_table->display();
+                ?>
             </form>
+
+
         </div>
         <?php
     }

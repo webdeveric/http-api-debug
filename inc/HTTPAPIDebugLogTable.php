@@ -18,6 +18,15 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         );
     }
 
+    /*
+    public function get_views()
+    {
+        return array(
+            'test' => '<a href="http://ericking.us/">ericking.us</a>'
+        );
+    }
+    */
+
     protected function json_column($id, $column, $data)
     {
         $data = json_decode( $data );
@@ -79,11 +88,13 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
     }
 
     public function column_cb($item){
-        return sprintf(
-            '<input type="checkbox" name="%1$s[]" value="%2$s" />',
-            $this->_args['singular'],
-            $item['log_id']
-        );
+        if (isset($item['log_id']))
+            return sprintf(
+                '<input type="checkbox" name="%1$s[]" value="%2$s" />',
+                $this->_args['singular'],
+                $item['log_id']
+            );
+        return '';
     }
 
     private function column_title($column)
@@ -104,7 +115,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         $columns = array_merge(
             array(
-                'cb'       => '<input type="checkbox" />',
+                'cb' => '<input type="checkbox" />',
             ),
             $columns
         );
@@ -163,7 +174,22 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         $total_items = 0;
 
-        if ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
+        if ( isset( $_REQUEST['s'] ) && ! empty( $_REQUEST['s'] ) ) {
+
+            $total_items = (int)$wpdb->get_var(
+                $wpdb->prepare(
+                    'select count(*) from ' . $wpdb->prefix . 'http_api_debug_log where
+                        host like "%1$s" or
+                        url like "%1$s" or
+                        request_args like "%1$s" or
+                        request_body like "%1$s" or
+                        response_data like "%1$s" or
+                        response_body like "%1$s"',
+                    '%' . $_REQUEST['s'] . '%'
+                )
+            );
+
+        } elseif ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
 
             $total_items = (int)$wpdb->get_var(
                 $wpdb->prepare(
@@ -192,7 +218,6 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             $hidden[] = 'blog_id';
         }
 
-
         $sortable = $this->get_sortable_columns();
 
         $this->_column_headers = array($columns, $hidden, $sortable);
@@ -200,7 +225,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         $this->process_bulk_action();
 
         $order_by = isset($_REQUEST['orderby']) && array_key_exists( $_REQUEST['orderby'], $columns ) ? $_REQUEST['orderby'] : 'log_time';
-        
+
         $order = 'DESC';
 
         if ( isset( $_REQUEST['order'] )  && in_array( strtoupper( $_REQUEST['order'] ), array('ASC', 'DESC') ) ) {
@@ -209,7 +234,24 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         $data = array();
 
-        if ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
+        if ( isset( $_REQUEST['s'] ) && ! empty( $_REQUEST['s'] ) ) {
+
+            $data = $wpdb->get_results(
+                $wpdb->prepare(
+                    'select * from ' . $wpdb->prefix . 'http_api_debug_log where
+                        host like "%1$s" or
+                        url like "%1$s" or
+                        request_args like "%1$s" or
+                        request_body like "%1$s" or
+                        response_data like "%1$s" or
+                        response_body like "%1$s"' .
+                    "order by {$order_by} {$order} limit {$page_offset}, {$per_page}",
+                    '%' . $_REQUEST['s'] . '%'
+                ),
+                'ARRAY_A'
+            );
+
+        } elseif ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
 
             $data = $wpdb->get_results(
                 $wpdb->prepare(
