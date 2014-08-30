@@ -73,11 +73,30 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
     }
 
     public function column_url($item)
-    {
+    {        
+        $menu_page = menu_page_url( $_REQUEST['page'], false );
+        
+        $view_url = add_query_arg(
+            array(
+                'action' => 'view',
+                'log_id' => $item['log_id']
+            ),
+            $menu_page
+        );
+
+        $delete_url = add_query_arg(
+            array(
+                'action' => 'delete',
+                'log_id' => $item['log_id']
+            ),
+            $menu_page
+        );
+
+        $delete_url = wp_nonce_url( $delete_url, 'delete-log-entry', 'delete_nonce' );
+
         $actions = array(
-            'view'   => sprintf('<a href="?page=%1$s&action=%2$s&log_id=%3$d" class="http-api-debug-details-action" data-log-id="%3$d">View Details</a>', $_REQUEST['page'], 'view', $item['log_id'] ),
-            'delete' => sprintf('<a href="?page=%1$s&action=%2$s&log_id=%3$d" class="http-api-debug-delete-action" data-log-id="%3$d">Delete</a>', $_REQUEST['page'], 'delete', $item['log_id'] ),
-            // 'visit'  => sprintf('<a href="%1$s" target="_blank" class="http-api-debug-visit-action" data-log-id="%2$d">Visit URL</a>', $item['url'], $item['log_id'] )
+            'view'   => sprintf('<a href="%1$s" class="http-api-debug-details-action">View Details</a>', $view_url ),
+            'delete' => sprintf('<a href="%1$s" class="http-api-debug-delete-action">Delete</a>', $delete_url )
         );
 
         return sprintf(
@@ -106,20 +125,26 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
     public function get_columns()
     {
-        $columns = table_columns('http_api_debug_log', true);
-        $columns = array_map(array(&$this, 'column_title'), array_combine($columns, $columns) );
+        $log_table_columns = table_columns('http_api_debug_log', true);
+        $log_table_columns = array_map(array(&$this, 'column_title'), array_combine($log_table_columns, $log_table_columns) );
 
         $columns['log_id']   = 'ID';
         $columns['url']      = 'URL';
-        $columns['log_time'] = 'When';
+        $columns['method']   = 'Method';
+        $columns['host']     = 'Host';
+        $columns['status']   = 'Status';
 
         $columns = array_merge(
             array(
                 'cb' => '<input type="checkbox" />',
             ),
-            $columns
+            $columns,
+            $log_table_columns
         );
         
+        $columns['log_time'] = 'When';
+
+
         return $columns;
     }
 
@@ -160,7 +185,26 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
     public function process_bulk_action()
     {
         if ( $this->current_action() === 'delete' ) {
-            wp_die('Delete log entries here!');
+
+            if ( isset($_REQUEST['_wpnonce']) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
+
+                $http_api_debug_log = isset($_REQUEST['http_api_debug_log']) ? $_REQUEST['http_api_debug_log'] : array();
+
+                if ( ! empty($http_api_debug_log) ) {
+
+                   array_map( __NAMESPACE__ .'\delete_log_entry', $http_api_debug_log );
+                
+                } else {
+                    
+                    echo '<div class="error"><p>Please select some log entries.</p></div>';
+
+                }
+
+            } else {
+
+                echo '<div class="error"><p>Invalid NONCE value.</p></div>';
+
+            }
         }
     }
 
@@ -211,7 +255,15 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         $columns = $this->get_columns();
 
-        $hidden = array('log_id', 'context', 'transport', 'request_args');
+        $hidden = array(
+            'log_id',
+            'context',
+            'transport',
+            'request_args',
+            'request_body',
+            'response_body',
+            'response_data'
+        );
 
         if ( ! is_multisite()) {
             $hidden[] = 'site_id';

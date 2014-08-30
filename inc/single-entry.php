@@ -26,23 +26,34 @@ $next_url = get_next_log_entry_url($entry->log_id);
                 printf($nav_link_format_placeholder, 'next');
 
             ?><span class="status status-<?php echo $entry->status; ?>" data-tooltip="HTTP Status Code">
-                <?php echo $entry->status; ?>
+                <?php echo $entry->status === '000' ? '?' : $entry->status; ?>
             </span><span class="method" data-tooltip="HTTP Method">
                 <?php echo strtoupper( $entry->method ); ?>
-            </span><span class="url tooltip-right" data-tooltip="Requested URL">
+            </span><span class="url tooltip-top" data-tooltip="Requested URL">
                 <?php echo $entry->url; ?>
             </span>
         </div>
 
     </header>
 
-    <?php // var_dump($entry);?>
+    <?php // var_dump($entry); ?>
 
     <?php if (isset($entry->request_args)): ?>
    
     <section>
         <h2>Request Arguments</h2>
         <?php echo key_value_table($entry->request_args, array('Argument', 'Value')); ?>
+    </section>
+    
+    <?php endif; ?>
+
+    <?php if (isset($entry->response_data)): ?>
+   
+    <section>
+        <h2>Response Data</h2>
+        <?php 
+        // var_dump($entry->response_data);
+        echo key_value_table($entry->response_data, array('Argument', 'Value')); ?>
     </section>
     
     <?php endif; ?>

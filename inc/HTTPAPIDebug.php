@@ -23,7 +23,7 @@ class HTTPAPIDebug
         register_deactivation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'deactivate') );
 
         // add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'wp_cron_wp_error_response_code'), 1, 3);
-        // add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'timed_out_wp_error_response_code'), 2, 3);
+        add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'timed_out_wp_error_response_code'), 2, 3);
         // add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'no_dns_record_wp_error_response_code'), 10, 3);
 
         add_action( 'plugins_loaded', array(&$this, 'update_db_check') );
@@ -337,7 +337,7 @@ class HTTPAPIDebug
     {
         $messages = $response->get_error_messages('http_request_failed');
         foreach ($messages as &$message) {
-            if (str_starts_with($messages, 'Operation timed out'))
+            if (str_starts_with($message, 'Operation timed out'))
                 return true;
         }
         return false;
@@ -379,33 +379,44 @@ class HTTPAPIDebug
             return;
 
         $request_method = '';
+
+        $request_headers = array();
+        $request_body = '';
+
+        $response_headers = array();
+        $response_body = '';
+
         if (isset($request_args['method'])) {
             $request_method = $request_args['method'];
             unset($request_args['method']);
         }
 
-        $request_headers = array();
         if (isset($request_args['headers'])) {
             $request_headers = $request_args['headers'];
             unset($request_args['headers']);
         }
 
-        $request_body = '';
         if (isset($request_args['body'])) {
             $request_body = $request_args['body'];
             unset($request_args['body']);
         }
 
-        $response_headers = array();
-        if (isset($response['headers'])) {
-            $response_headers = $response['headers'];
-            unset($response['headers']);
-        }
+        if ( is_wp_error($response) ) {
 
-        $response_body = '';
-        if (isset($response['body'])) {
-            $response_body = $response['body'];
-            unset($response['body']);
+            // var_dump(func_get_args());
+
+        } else {
+
+            if (isset($response['headers'])) {
+                $response_headers = $response['headers'];
+                unset($response['headers']);
+            }
+
+            if (isset($response['body'])) {
+                $response_body = $response['body'];
+                unset($response['body']);
+            }
+
         }
 
         $request_args = json_encode($request_args);

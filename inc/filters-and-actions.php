@@ -2,7 +2,7 @@
 
 namespace WDE\HTTPAPIDebug;
 
-function format_log_entry($entry)
+function format_log_entry_bodies($entry)
 {
     foreach (array('response', 'request') as $r) {
         $headers = $r . '_headers';
@@ -36,7 +36,15 @@ function format_log_entry($entry)
 
     return $entry;
 }
-add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry', 10, 1 );
+add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry_bodies', 10, 1 );
+
+
+function format_log_entry_response_data($entry)
+{
+    $entry->response_data = json_decode($entry->response_data, true);
+    return $entry;
+}
+add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry_response_data', 10, 1 );
 
 
 function format_log_entry_url($entry)

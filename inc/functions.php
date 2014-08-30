@@ -325,5 +325,24 @@ function get_log_entry_headers($log_id, $header_type)
     return $headers;
 }
 
+function delete_log_entry($log_id)
+{
+    global $wpdb;
 
+    $headers_deleted = $wpdb->query(
+        $wpdb->prepare(
+            "delete from {$wpdb->prefix}http_api_debug_log_headers where log_id = %d",
+            $log_id
+        )
+    );
+
+    $entry_deleted = $wpdb->query(
+        $wpdb->prepare(
+            "delete from {$wpdb->prefix}http_api_debug_log where log_id = %d limit 1",
+            $log_id
+        )
+    );
+
+    return compact('entry_deleted', 'headers_deleted');
+}
 
