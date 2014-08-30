@@ -92,7 +92,6 @@
 
     .method{
         @extend %log-entry-meta-box;
-        text-transform: uppercase;
         font-weight: bold;
         background:#F8F8F8;
     }
@@ -122,9 +121,14 @@
 
     .url{
         @extend %log-entry-meta-box;
+        padding-top:0;
+        padding-bottom: 0;
 
         span{
+            @extend %log-entry-meta-box;
             position: relative;
+            padding-left: 0;
+            padding-right: 0;
             @include transition( all ease-in-out 250ms );
         }
 
