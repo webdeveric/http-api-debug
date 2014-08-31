@@ -53,6 +53,8 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             case 'log_time':
             case 'url':
                 return $item[$column_name];
+            case 'status':
+                return sprintf('<span class="status status-%2$s">%1$s</span>', $item[$column_name], esc_attr($item[$column_name]));
             case 'host':
                 $admin_url = remove_query_arg('paged');
                 $admin_url = remove_query_arg('log_id');
@@ -130,9 +132,9 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         $columns['log_id']   = 'ID';
         $columns['url']      = 'URL';
-        $columns['method']   = 'Method';
-        $columns['host']     = 'Host';
         $columns['status']   = 'Status';
+        $columns['method']   = 'Method';
+        $columns['host']     = 'Host';        
 
         $columns = array_merge(
             array(

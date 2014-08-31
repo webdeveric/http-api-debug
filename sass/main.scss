@@ -173,15 +173,15 @@
     }
 
     [class*="status-2"]{
-        background-color: #16C98D; /* $green */
+        background-color: $green;
     }
 
     [class*="status-3"]{
-        background-color: #FFC83F; /* $orange */
+        background-color: $orange;
     }
 
     [class*="status-4"]{
-        background-color: #FA5E5B; /* $red */
+        background-color: $red;
     }
 
     [class*="status-404"]{
@@ -223,5 +223,31 @@
     &:empty:before{
         content: "Body is empty";
         color: #333;
+    }
+}
+
+.column-status{
+    .status{
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    [class*="status-1"]{
+    }
+
+    [class*="status-2"]{
+        color: $green;
+    }
+
+    [class*="status-3"]{
+        color: $orange;
+    }
+
+    [class*="status-4"]{
+        color: $red;
+    }
+
+    [class*="status-404"]{
+        color: red;
     }
 }
