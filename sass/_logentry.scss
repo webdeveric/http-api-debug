@@ -1,0 +1,206 @@
+.log-entry{
+
+    .full-width{
+        display: block;
+        clear: both;
+        width: 100%;
+        margin: 0 0 $gutter-size 0;
+        box-sizing: border-box;
+    }
+
+    header{
+        margin:0 0 $gutter-size 0;
+    }
+
+    section{
+        display: inline-block;
+        vertical-align: top;
+        margin:0 0 $gutter-size 0;
+
+        & + section{
+            margin-left:$gutter-size;
+        }
+
+        h2{
+            margin:0 0 $gutter-size/3 0;
+            padding:0;
+            line-height: 1;
+        }
+
+        table{
+            text-align: left;
+            border:0;
+            border-collapse: collapse;
+            background: #FFF;
+            @extend %shadowed;
+
+            thead{
+                background: rgb(225, 88, 69);
+                color: #FFF;
+
+            }
+
+            th, td{
+                padding:6px 12px;
+            }
+
+            th{
+                font-weight: bold;
+            }
+
+            tbody{
+                th{
+                    white-space: nowrap;
+                    vertical-align: top;
+                }
+                td {
+                    white-space: pre-wrap;
+                    word-break: break-all;
+
+
+                }
+                tr:nth-child(even){
+                    background: $table-row-alt-color;
+                    border-width: 1px 0;
+                    border-style: solid;
+                    border-color: $table-border-color;
+                }
+
+            }
+        }
+    }
+}
+
+.log-entry-meta{
+    display: block;
+    clear: both;
+    background: #FFF;
+    @extend %shadowed;
+
+    .log-nav{
+        @extend %log-entry-meta-box;
+        position: relative;
+        width:20px;
+        background-color: $log-nav-bg;
+        outline: none;
+
+        span{
+            display: block;
+            width:100%;
+            white-space: nowrap;
+            text-indent: 200%;
+            overflow: hidden;
+        }
+
+        &::before{
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin:-6px 0 0 -6px;
+            text-indent: 0;
+        }
+
+        &.log-nav-prev{
+            &::before{
+                border-width: 6px 12px 6px 0;
+                border-style: solid;
+                border-color: transparent $log-nav-color transparent transparent;
+            }
+            &:hover::before{
+                border-right-color: darken($log-nav-color, 15%);
+            }
+        }
+
+        &.log-nav-next{
+            &::before{
+                border-width: 6px 0 6px 12px;
+                border-style: solid;
+                border-color: transparent transparent transparent $log-nav-color;
+            }
+            &:hover::before{
+                border-left-color: darken($log-nav-color, 15%);
+            }
+        }
+
+        &:focus,
+        &:active,
+        &:hover{
+            background-color: lighten($log-nav-bg, 6%);
+        }
+    }
+
+    .method{
+        @extend %log-entry-meta-box;
+        font-weight: bold;
+        background:#F8F8F8;
+    }
+
+    .status{
+        @extend %log-entry-meta-box;
+        background: $table-row-alt-color;
+        color: #FFF;
+        font-weight: bold;
+        border: 0;
+    }
+
+    .status-000{
+        background-color: #000;
+    }
+
+    [class*="status-1"]{
+    }
+
+    [class*="status-2"]{
+        background-color: $green;
+    }
+
+    [class*="status-3"]{
+        background-color: $orange;
+    }
+
+    [class*="status-4"]{
+        background-color: $red;
+    }
+
+    [class*="status-404"]{
+    }
+
+    .url{
+        @extend %log-entry-meta-box;
+        padding-top:0;
+        padding-bottom: 0;
+
+        span{
+            @extend %log-entry-meta-box;
+            position: relative;
+            padding-left: 0;
+            padding-right: 0;
+            @include transition( all ease-in-out 250ms );
+        }
+
+        span:not(.separator):hover{
+            background-color: $light-yellow;
+        }
+
+        &.expanded{
+            span{
+                padding:6px;
+            }
+        }
+    }
+
+}
+
+.body-output{
+    display: block;
+    background-color: #FFF;
+    padding: 1em;
+    white-space: pre;
+    @extend %shadowed;
+
+    &:empty:before{
+        content: "Body is empty";
+        color: #333;
+    }
+}

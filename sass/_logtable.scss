@@ -1,0 +1,45 @@
+table.http-api-debug-logs{
+}
+
+.log-size{
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 30px;
+}
+
+.column-url{
+}
+
+.column-status{
+    .status{
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    [class*="status-1"]{
+    }
+
+    [class*="status-2"]{
+        color: $green;
+    }
+
+    [class*="status-3"]{
+        color: $orange;
+    }
+
+    [class*="status-4"]{
+        color: $red;
+    }
+
+    [class*="status-404"]{
+        color: red;
+    }
+}
+
+.column-method{
+    .method{
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: 16px;
+    }
+}
