@@ -26,11 +26,13 @@ class HTTPAPIDebug
         add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'timed_out_wp_error_response_code'), 2, 3);
         // add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'no_dns_record_wp_error_response_code'), 10, 3);
 
-        add_action( 'plugins_loaded', array(&$this, 'update_db_check') );
-        add_action( 'http_api_debug', array(&$this, 'http_api_debug'), 10, 5);
-        add_action( 'admin_menu', array(&$this, 'admin_menu'), 10, 0);
-        
-        add_filter( 'admin_footer_text', array(&$this, 'admin_footer_text'), PHP_INT_MAX, 1);
+        add_action( 'plugins_loaded', array( &$this, 'update_db_check' ) );
+        add_action( 'http_api_debug', array( &$this, 'http_api_debug' ), 10, 5 );
+        add_action( 'admin_menu', array( &$this, 'admin_menu' ), 10, 0 );
+
+        add_filter( 'admin_footer_text', array( &$this, 'admin_footer_text' ), PHP_INT_MAX, 1);
+        add_filter( 'set-screen-option', array( &$this, 'set_screen_option' ), 10, 3 );
+
     }
 
     public function admin_menu()
@@ -53,10 +55,9 @@ class HTTPAPIDebug
             array(&$this, 'options_admin_page')
         );
 
-        add_action('admin_print_styles', array(&$this, 'admin_styles') );
-        add_action('admin_print_scripts', array(&$this, 'admin_scripts') );
-        add_action('load-' . $this->main_page_hook, array(&$this, 'screen_options') );
-
+        add_action( 'admin_print_styles', array( &$this, 'admin_styles' ) );
+        add_action( 'admin_print_scripts', array( &$this, 'admin_scripts' ) );
+        add_action( 'load-' . $this->main_page_hook, array( &$this, 'screen_options' ) );
     }
 
     protected function is_http_api_debug_admin_page()
@@ -116,7 +117,7 @@ class HTTPAPIDebug
             */
             default:
                 $this->main_admin_page();
-                $header_links[] = '<a href="#" class="add-new-h2">Test URL</a>';
+                // $header_links[] = '<a href="#" class="add-new-h2">Test URL</a>';
         }
 
         $content = ob_get_clean();
@@ -132,18 +133,18 @@ class HTTPAPIDebug
         $log_table = new HTTPAPIDebugLogTable();
         $log_table->prepare_items();
 
-        if (array_key_exists('s', $_REQUEST) || array_key_exists('host', $_REQUEST)):
+        if (array_key_not_empty('s', $_REQUEST) || array_key_not_empty('host', $_REQUEST)):
         ?>
 
         <h3>
             <a href="<?php menu_page_url( isset($_REQUEST['page']) ? $_REQUEST['page'] : ''); ?>">Log Entries</a>
             <?php
 
-            if ( array_key_exists('s', $_REQUEST) && ! empty( $_REQUEST['s'] ) ) {
+            if ( array_key_not_empty('s', $_REQUEST) ) {
 
                 printf('<span class="subtitle">Search: <strong>%s</strong></span>', esc_html( $_REQUEST['s'] ) );
 
-            } elseif ( isset( $_REQUEST['host'] ) && ! empty( $_REQUEST['host'] ) ) {
+            } elseif ( array_key_not_empty('host', $_REQUEST) ) {
 
                 printf('<span class="subtitle">Host: <strong>%s</strong></span>', esc_html( $_REQUEST['host'] ) );
 
@@ -221,6 +222,13 @@ class HTTPAPIDebug
             );
 
         }
+    }
+
+    public function set_screen_option($status, $option, $value)
+    {
+        if ( $option == 'http_api_debug_log_per_page' )
+            return $value;
+        return $status;
     }
 
     public function admin_footer_text($text)

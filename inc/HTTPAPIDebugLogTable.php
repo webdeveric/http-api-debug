@@ -11,8 +11,8 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         parent::__construct(
             array(
-                'singular'  => 'http_api_debug_log',
-                'plural'    => 'http_api_debug_logs',
+                'singular'  => 'http-api-debug-log',
+                'plural'    => 'http-api-debug-logs',
                 'ajax'      => false
             )
         );
@@ -55,6 +55,8 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
                 return $item[$column_name];
             case 'status':
                 return sprintf('<span class="status status-%2$s">%1$s</span>', $item[$column_name], esc_attr($item[$column_name]));
+            case 'method':
+                return sprintf('<span class="method method-%2$s">%1$s</span>', $item[$column_name], esc_attr( strtolower( $item[$column_name] ) ) );
             case 'host':
                 $admin_url = remove_query_arg('paged');
                 $admin_url = remove_query_arg('log_id');
@@ -190,7 +192,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
             if ( isset($_REQUEST['_wpnonce']) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
 
-                $http_api_debug_log = isset($_REQUEST['http_api_debug_log']) ? $_REQUEST['http_api_debug_log'] : array();
+                $http_api_debug_log = isset($_REQUEST[ $this->_args['singular'] ]) ? $_REQUEST[ $this->_args['singular'] ] : array();
 
                 if ( ! empty($http_api_debug_log) ) {
 

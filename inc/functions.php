@@ -346,3 +346,9 @@ function delete_log_entry($log_id)
     return compact('entry_deleted', 'headers_deleted');
 }
 
+function array_key_not_empty($key, array $data)
+{
+    if ( ! array_key_exists($key, $data) )
+        return false;
+    return ! empty( $data[ $key ] );
+}
