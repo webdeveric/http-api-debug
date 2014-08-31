@@ -2,7 +2,6 @@
 
 namespace WDE\HTTPAPIDebug;
 
-
 function table_size( $table, $add_prefix = true )
 {
     global $wpdb;
@@ -20,7 +19,6 @@ function table_size( $table, $add_prefix = true )
     return $bytes;
 }
 
-
 function table_columns( $table, $add_prefix = true )
 {
     global $wpdb;
@@ -30,7 +28,6 @@ function table_columns( $table, $add_prefix = true )
 
     return $wpdb->get_col( 'DESCRIBE ' . $table, 0 );
 }
-
 
 function table_exists( $table, $add_prefix = true )
 {
@@ -43,7 +40,6 @@ function table_exists( $table, $add_prefix = true )
 
     return $rows > 0;
 }
-
 
 function convert_bytes( $bytes, $abbreviated = true, $precision = 2, $stop_at = null )
 {
@@ -93,7 +89,6 @@ function convert_bytes( $bytes, $abbreviated = true, $precision = 2, $stop_at = 
     return number_format( $bytes, $precision ) . ( $abbreviated ? $unit_abbr : ' ' . $unit_name . ($bytes > 1 ? 's':'') );
 }
 
-
 function get_bytes( $val )
 {
     $num = intval( $val );
@@ -108,12 +103,10 @@ function get_bytes( $val )
     return $num; //Bytes
 }
 
-
 function str_starts_with($haystack, $needle)
 {
     return $needle === "" || strpos($haystack, $needle) === 0;
 }
-
 
 function str_ends_with($haystack, $needle)
 {
@@ -303,7 +296,6 @@ function get_next_log_entry_url($log_id)
 {
     return get_adjacent_log_entry_url($log_id, false);
 }
-
 
 function get_log_entry_headers($log_id, $header_type)
 {
