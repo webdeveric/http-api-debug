@@ -2,7 +2,6 @@
 
 namespace WDE\HTTPAPIDebug;
 
-
 class HTTPAPIDebugLogTable extends \WP_List_Table
 {
     public function __construct()

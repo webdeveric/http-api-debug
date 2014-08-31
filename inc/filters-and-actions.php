@@ -50,7 +50,10 @@ add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry_respon
 function format_log_entry_url($entry)
 {
     $parse_url_parts = array(
-        'scheme'   => array('after' => '://'),
+        'scheme'   => array(
+            'add_to_class' => true,
+            'after' => '://'
+        ),
         'user'     => array(
             'after' => array(
                 'field' => 'pass',
@@ -88,7 +91,13 @@ function format_log_entry_url($entry)
     foreach ( $parse_url_parts as $part => $extra ) {
         if ( array_key_exists($part, $parts) && ! empty( $parts[ $part ] ) ) {
 
-            $part_html = sprintf( '<span class="%1$s" data-tooltip="%1$s">%2$s</span>', $part, $parts[ $part ] );
+            $extra_classes = '';
+
+            if ( is_array( $extra ) && array_key_exists('add_to_class', $extra) && $extra['add_to_class'] === true ) {
+                $extra_classes = $part . '-' . esc_attr( strtolower( $parts[ $part ] ) );
+            }
+
+            $part_html = sprintf( '<span class="%1$s %3$s" data-tooltip="%1$s">%2$s</span>', $part, $parts[ $part ], $extra_classes );
 
             if ( is_array( $extra ) ) {
 

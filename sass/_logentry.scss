@@ -1,3 +1,6 @@
+@import "compass/css3/background-size";
+@import "compass/css3/border-radius";
+
 .log-entry{
 
     .full-width{
@@ -188,6 +191,29 @@
                 padding:6px;
             }
         }
+
+        .scheme-http::before,
+        .scheme-https::before{
+            content: "";
+            display: inline-block;
+            vertical-align: middle;
+            width: 16px;
+            height: 16px;
+            @include border-radius(2px);
+            margin:0 5px 0 0;
+            overflow: hidden;
+            @include background-size(contain);
+        }
+
+        .scheme-http::before{
+            background-image: url(../../imgs/dist/lock-disabled.png);
+            opacity: .5;
+        }
+
+        .scheme-https::before{
+            background-image: url(../../imgs/dist/lock.png);
+        }
+
     }
 
 }
