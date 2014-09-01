@@ -68,7 +68,23 @@ module.exports = function( grunt ){
                 ext: '.min.css'
             }
         },
-
+        svgmin: {
+            options: {
+                plugins: [
+                  { removeViewBox: false },
+                  { removeUselessStrokeAndFill: false }
+                ]
+            },
+            dist: {
+                files: [{
+                    expand: true,
+                    cwd: 'imgs/src/',
+                    src: ['**/*.svg'],
+                    dest: 'imgs/dist/',
+                    ext: '.min.svg'
+                }]
+            }
+        },
         imagemin: {
             png: {
                 options: {
@@ -134,6 +150,13 @@ module.exports = function( grunt ){
             js: {
                 files: '<%= jshint.files %>',
                 tasks: ['jshint', 'uglify']
+            },
+            svgimgs: {
+                files: ['imgs/src/**/*.svg'],
+                tasks: ['svgmin'],
+                options: {
+                    spawn: false
+                }
             },
             pngimgs: {
                 files: ['imgs/src/**/*.png'],
