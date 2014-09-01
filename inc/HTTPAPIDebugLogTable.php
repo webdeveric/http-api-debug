@@ -95,7 +95,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             $menu_page
         );
 
-        $delete_url = wp_nonce_url( $delete_url, 'delete-log-entry', 'delete_nonce' );
+        $delete_url = wp_nonce_url( $delete_url, 'delete-log-entry-' . $item['log_id'], 'delete_nonce' );
 
         $actions = array(
             'view'   => sprintf('<a href="%1$s" class="http-api-debug-details-action">View Details</a>', $view_url ),
@@ -189,17 +189,33 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
     {
         if ( $this->current_action() === 'delete' ) {
 
-            if ( isset($_REQUEST['_wpnonce']) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
+            // Used to delete a single log entry.
+            $log_id = array_key_exists('log_id', $_REQUEST) ? (int)$_REQUEST['log_id'] : 0;
 
-                $http_api_debug_log = isset($_REQUEST[ $this->_args['singular'] ]) ? $_REQUEST[ $this->_args['singular'] ] : array();
+            // Used in bulk delete.
+            $http_api_debug_log = array_key_exists( $this->_args['singular'], $_REQUEST ) ? $_REQUEST[ $this->_args['singular'] ] : array();
 
-                if ( ! empty($http_api_debug_log) ) {
+            if ( array_key_exists( '_wpnonce', $_REQUEST ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
+
+                if ( ! empty( $http_api_debug_log ) ) {
 
                    array_map( __NAMESPACE__ .'\delete_log_entry', $http_api_debug_log );
                 
                 } else {
                     
                     echo '<div class="error"><p>Please select some log entries.</p></div>';
+
+                }
+
+            } elseif ( array_key_exists( 'delete_nonce', $_REQUEST ) && wp_verify_nonce( $_REQUEST['delete_nonce'], 'delete-log-entry-' . $log_id ) ) {
+
+                if ( $log_id > 0 ) {
+
+                   delete_log_entry( $log_id );
+
+                } else {
+
+                    echo '<div class="error"><p>Invalid log ID.</p></div>';
 
                 }
 
