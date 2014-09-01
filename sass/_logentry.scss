@@ -209,12 +209,14 @@
             content: "";
             display: inline-block;
             vertical-align: middle;
-            width: 16px;
-            height: 16px;
+            width: 1em;
+            height: 1em;
             @include border-radius(2px);
             margin:0 5px 0 0;
             overflow: hidden;
             @include background-size(contain);
+            background-repeat: no-repeat;
+            background-position: center center;
         }
 
         .scheme-http::before{
@@ -225,7 +227,12 @@
         .scheme-https::before{
             background-image: url(../../imgs/dist/lock.png);
         }
-
+        
+        /*
+        .scheme-https::before{
+            background-image: url(../../imgs/dist/lock.min.svg);
+        }
+        */
     }
 
 }
