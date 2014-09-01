@@ -148,10 +148,11 @@ function str_value($arg)
     return print_r($arg, true);
 }
 
-function key_value_table($data, $headers = array('Key', 'Value'))
+function key_value_table($data, $headers = array('Key', 'Value'), $caption = null)
 {
     if (empty($data))
         return '';
+
     $rows = array();
 
     foreach ($data as $key => &$value) {
@@ -162,11 +163,15 @@ function key_value_table($data, $headers = array('Key', 'Value'))
         );
     }
 
+    if ( isset( $caption ) )
+        $caption = '<caption>' . (string)$caption . '</caption>';
+
     $html = sprintf(
-        '<table><thead><tr><th scope="col">%1$s</th><th scope="col">%2$s</th></tr></thead><tbody>%3$s</tbody></table>',
+        '<table class="key-value-table">%4$s<thead><tr><th scope="col">%1$s</th><th scope="col">%2$s</th></tr></thead><tbody>%3$s</tbody></table>',
         array_shift($headers),
         array_shift($headers),
-        implode('', $rows)
+        implode('', $rows),
+        $caption
     );
 
     return $html;

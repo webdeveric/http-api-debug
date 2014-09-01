@@ -3,6 +3,8 @@
 
 .log-entry{
 
+
+
     .full-width{
         display: block;
         clear: both;
@@ -30,17 +32,27 @@
             line-height: 1;
         }
 
-        table{
+        .key-value-table{
             text-align: left;
             border:0;
             border-collapse: collapse;
             background: #FFF;
             @extend %shadowed;
 
+            & + .key-value-table{
+                margin-top:10px;
+            }
+
+            caption{
+                font-size:16px;
+                margin:0 0 .5em 0;
+                font-weight: bold;
+                text-align: left;
+            }
+
             thead{
                 background: rgb(225, 88, 69);
                 color: #FFF;
-
             }
 
             th, td{

@@ -16,4 +16,4 @@ new HTTPAPIDebug($wpdb);
 // wp_remote_get('http://ip.phplug.in/?output=json');
 // wp_remote_get('http://ip.phplug.in/?output=xml');
 
-// wp_remote_get('https://phplug.in/404');
+// wp_remote_get('http://phplug.in/404');

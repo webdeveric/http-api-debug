@@ -25,7 +25,10 @@ $next_url = get_next_log_entry_url($entry->log_id);
             else
                 printf($nav_link_format_placeholder, 'next');
 
-            ?><span class="status status-<?php echo $entry->status; ?>" data-tooltip="HTTP Status Code">
+            $status_description = \get_status_header_desc($entry->status);
+            $status_tooltip = ! empty( $status_description ) ? $status_description : 'Unknown HTTP Status Code';
+
+            ?><span class="status status-<?php echo $entry->status; ?>" data-tooltip="<?php echo $status_tooltip; ?>">
                 <?php echo $entry->status === '000' ? '?' : $entry->status; ?>
             </span><span class="method" data-tooltip="HTTP Method">
                 <?php echo strtoupper( $entry->method ); ?>
@@ -41,8 +44,7 @@ $next_url = get_next_log_entry_url($entry->log_id);
     <?php if (isset($entry->request_args)): ?>
    
     <section>
-        <h2>Request Arguments</h2>
-        <?php echo key_value_table($entry->request_args, array('Argument', 'Value')); ?>
+        <?php echo key_value_table($entry->request_args, array('Argument', 'Value'), 'Request Arguments'); ?>
     </section>
     
     <?php endif; ?>
@@ -50,26 +52,20 @@ $next_url = get_next_log_entry_url($entry->log_id);
     <?php if (isset($entry->response_data)): ?>
    
     <section>
-        <h2>Response Data</h2>
-        <?php 
-        // var_dump($entry->response_data);
-        echo key_value_table($entry->response_data, array('Argument', 'Value')); ?>
+        <?php echo key_value_table($entry->response_data, array('Argument', 'Value'), 'Response Data'); ?>
     </section>
     
     <?php endif; ?>
 
     <section>
         <h2>Headers</h2>
-        <?php if (isset($entry->request_headers)): ?>
-            <h3>Request Headers</h3>
-            <?php // echo data_table($entry->request_headers, array('header_name:th:Header Name', 'header_value:td:Header Value')); ?>
-            <?php echo key_value_table($entry->request_headers, array('Header', 'Value')); ?>
-        <?php endif; ?>
+        <?php
+        if (isset($entry->request_headers))
+            echo key_value_table($entry->request_headers, array('Header', 'Value'), 'Request Headers');
 
-        <?php if (isset($entry->response_headers)): ?>
-            <h3>Response Headers</h3>
-            <?php echo key_value_table($entry->response_headers, array('Header', 'Value')); ?>
-        <?php endif; ?>
+        if (isset($entry->response_headers))
+            echo key_value_table($entry->response_headers, array('Header', 'Value'), 'Response Headers');
+        ?>
     </section>
 
     <?php foreach (array('response', 'request') as $r):
