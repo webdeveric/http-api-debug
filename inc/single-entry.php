@@ -42,31 +42,24 @@ $next_url = get_next_log_entry_url($entry->log_id);
     <?php // var_dump($entry); ?>
 
     <?php if (isset($entry->request_args)): ?>
-   
-    <section>
-        <?php echo key_value_table($entry->request_args, array('Argument', 'Value'), 'Request Arguments'); ?>
-    </section>
+    
+    <?php echo key_value_table($entry->request_args, array('Argument', 'Value'), 'Request Arguments'); ?>
     
     <?php endif; ?>
 
     <?php if (isset($entry->response_data)): ?>
    
-    <section>
-        <?php echo key_value_table($entry->response_data, array('Argument', 'Value'), 'Response Data'); ?>
-    </section>
+    <?php echo key_value_table($entry->response_data, array('Argument', 'Value'), 'Response Data'); ?>
     
     <?php endif; ?>
 
-    <section>
-        <h2>Headers</h2>
-        <?php
-        if (isset($entry->request_headers))
-            echo key_value_table($entry->request_headers, array('Header', 'Value'), 'Request Headers');
+    <?php
+    if (isset($entry->request_headers))
+        echo key_value_table($entry->request_headers, array('Header', 'Value'), 'Request Headers');
 
-        if (isset($entry->response_headers))
-            echo key_value_table($entry->response_headers, array('Header', 'Value'), 'Response Headers');
-        ?>
-    </section>
+    if (isset($entry->response_headers))
+        echo key_value_table($entry->response_headers, array('Header', 'Value'), 'Response Headers');
+    ?>
 
     <?php foreach (array('response', 'request') as $r):
         $body = $r . '_body';

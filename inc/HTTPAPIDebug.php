@@ -32,7 +32,6 @@ class HTTPAPIDebug
 
         add_filter( 'admin_footer_text', array( &$this, 'admin_footer_text' ), PHP_INT_MAX, 1);
         add_filter( 'set-screen-option', array( &$this, 'set_screen_option' ), 10, 3 );
-
     }
 
     public function admin_menu()
