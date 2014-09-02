@@ -375,3 +375,21 @@ function array_key_not_empty($key, array $data)
         return false;
     return ! empty( $data[ $key ] );
 }
+
+function html_attr(array $attributes = array())
+{
+    $attr = array();
+
+    $binary_attr = array('required', 'checked', 'selected');
+
+    foreach($attributes as $name => $value) {
+        if (in_array($name, $binary_attr)) {
+            if ($value)
+                $attr[] = $name;
+            continue;
+        }
+        $attr[] = $name . '="' . esc_attr($value) . '"';
+    }
+
+    return implode(' ', $attr);
+}

@@ -10,14 +10,20 @@ class HTTPAPIDebug
     protected $headers_table;
     protected $main_page_hook;
     protected $main_page_slug;
+    protected $options_group;
 
     public function __construct($wpdb)
     {
-        $this->db             = &$wpdb;
-        $this->version_db_key = 'http-api-debug-version';
-        $this->log_table      = $this->db->prefix . "http_api_debug_log";
-        $this->headers_table  = $this->db->prefix . "http_api_debug_log_headers";
-        $this->main_page_slug = 'http-api-debug';
+        $this->db                = &$wpdb;
+        $this->version_db_key    = 'http-api-debug-version';
+        $this->log_table         = $this->db->prefix . "http_api_debug_log";
+        $this->headers_table     = $this->db->prefix . "http_api_debug_log_headers";
+        $this->main_page_slug    = 'http-api-debug';
+        $this->options_page_slug = 'http-api-debug-options';
+        $this->options_group     = 'http-api-debug';
+        $this->require_wp_debug  = \get_site_option( 'http-api-debug-require-wp-debug', 0 );
+        $this->domain_filter     = \get_site_option( 'http-api-debug-domain-filter', 'exclude' );
+        $this->domains           = explode( "\n", \get_site_option( 'http-api-debug-domains', '' ) );
 
         register_activation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'activate') );
         register_deactivation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'deactivate') );
@@ -27,8 +33,12 @@ class HTTPAPIDebug
         // add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'no_dns_record_wp_error_response_code'), 10, 3);
 
         add_action( 'plugins_loaded', array( &$this, 'update_db_check' ) );
-        add_action( 'http_api_debug', array( &$this, 'http_api_debug' ), 10, 5 );
+
+        if ( ! $this->require_wp_debug || ( defined('WP_DEBUG') && constant('WP_DEBUG') == true ) )
+            add_action( 'http_api_debug', array( &$this, 'http_api_debug' ), 10, 5 );
+
         add_action( 'admin_menu', array( &$this, 'admin_menu' ), 10, 0 );
+        add_action( 'admin_init', array( &$this, 'admin_init' ), 10, 0 );
 
         add_filter( 'admin_footer_text', array( &$this, 'admin_footer_text' ), PHP_INT_MAX, 1);
         add_filter( 'set-screen-option', array( &$this, 'set_screen_option' ), 10, 3 );
@@ -50,13 +60,140 @@ class HTTPAPIDebug
             'HTTP API Debug Options',
             'Options',
             'update_plugins',
-            'http-api-debug-options',
+            $this->options_page_slug,
             array(&$this, 'options_admin_page')
         );
 
         add_action( 'admin_print_styles', array( &$this, 'admin_styles' ) );
         add_action( 'admin_print_scripts', array( &$this, 'admin_scripts' ) );
         add_action( 'load-' . $this->main_page_hook, array( &$this, 'screen_options' ) );
+    }
+
+    public function admin_init()
+    {
+        $this->register_settings();
+    }
+
+    public function sanitize_settings($value)
+    {
+        return $value;
+    }
+
+    protected function register_settings()
+    {
+        add_settings_section(
+            $this->options_page_slug . '-basic',
+            'Basic Options',
+            function() {
+            },
+            $this->options_page_slug
+        );
+
+        register_setting( $this->options_group, 'http-api-debug-require-wp-debug', 'intval' );
+        
+        register_setting(
+            $this->options_group,
+            'http-api-debug-domain-filter',
+            function($value) {
+                if ( $value == 'exclude' || $value == 'include' )
+                    return $value;
+                return 'exclude';
+            }
+        );
+        
+        register_setting(
+            $this->options_group,
+            'http-api-debug-domains',
+            function($value) {
+                $lines = array_filter(
+                    explode( "\n", trim( $value ) ),
+                    function($v) {
+                        return trim( $v ) === '' ? false : $v;
+                    }
+                );
+                $lines = implode("\n", $lines);
+                return $lines;
+            }
+        );
+
+        $require_wp_debug = $this->require_wp_debug;
+        $domain_filter    = $this->domain_filter;
+        $domains          = implode("\n", $this->domains);
+
+        add_settings_field(
+            'http-api-debug-require-wp-debug',
+            'Only log requests if WP_DEBUG is true',
+            function($args) use ($require_wp_debug) {
+                $checked = \checked( 1, $require_wp_debug, false );
+                echo '<input type="checkbox" value="1" name="http-api-debug-require-wp-debug" ', $checked, ' />';
+            },
+            $this->options_page_slug,
+            $this->options_page_slug . '-basic'
+        );
+
+        add_settings_field(
+            'http-api-debug-domain-filter',
+            'Domain filter',
+            function($args) use ($domain_filter) {
+                foreach (array('exclude', 'include') as $filter) {
+                    printf(
+                        '<p><label><input type="radio" value="%1$s" name="http-api-debug-domain-filter" %3$s /><span>%2$s</span></label></p>',
+                        $filter,
+                        ucfirst($filter),
+                        \checked( $filter, $domain_filter, false )
+                    );
+                }
+            },
+            $this->options_page_slug,
+            $this->options_page_slug . '-basic'
+        );
+
+        add_settings_field(
+            'http-api-debug-domains',
+            'Only these domains<br /><small>(one domain per line)</small>',
+            function($args) use ($domains) {
+                echo '<textarea class="widefat" rows="6" name="http-api-debug-domains">', $domains, '</textarea>';
+            },
+            $this->options_page_slug,
+            $this->options_page_slug . '-basic'
+        );
+
+    }
+
+    public function input($args)
+    {
+        if ( ! isset($args['attributes'])) {
+            $args['attributes'] = array();
+        }
+
+        if ( ! is_array($args['attributes'])) {
+            $args['attributes'] = (array)$args['attributes'];
+        }
+
+        if ( ! isset($args['attributes']['type'])) {
+            $args['attributes']['type'] = 'text';
+        }
+
+        if ( isset($args['id']) && ! isset($args['attributes']['id'])) {
+            $args['attributes']['id'] = $args['id'];
+        }
+
+        if ( ! isset($args['attributes']['id'])) {
+            $args['attributes']['id'] = '';
+        }
+
+        if ( ! isset($args['attributes']['name'])) {
+            $args['attributes']['name'] = $args['attributes']['id'];
+        }
+
+        if ( isset($args['value']) && ! isset($args['attributes']['value'])) {
+            $args['attributes']['value'] = $args['value'];
+        }
+        
+        $attributes = html_attr($args['attributes']);
+
+        echo '<input ', $attributes, ' />';
+
     }
 
     protected function is_http_api_debug_admin_page()
@@ -193,7 +330,21 @@ class HTTPAPIDebug
 
     public function options_admin_page()
     {
-        echo 'options';
+        ?>
+
+        <div class="wrap">
+            <h2>HTTP API Debug</h2>
+            <form method="post" action="options.php">
+                <?php
+                    // wp_nonce_field( 'update-options' );
+                    settings_fields($this->options_group);
+                    do_settings_sections($this->options_page_slug);
+                    submit_button('Save Options');
+                ?>
+            </form>
+        </div>
+
+        <?php
     }
 
     public function screen_options()
@@ -457,6 +608,10 @@ class HTTPAPIDebug
 
             foreach ( array('req' => &$request_headers, 'res' => &$response_headers) as $header_type => &$headers ) {
                 foreach ($headers as $header_name => &$header_value) {
+
+                    if ( is_array( $header_value ) )
+                        $header_value = json_encode( $header_value );
+
                     $this->db->query(
                         $this->db->prepare(
                             "insert into {$this->headers_table} (log_id, header_type, header_name, header_value) values (%d, %s, %s, %s)",
