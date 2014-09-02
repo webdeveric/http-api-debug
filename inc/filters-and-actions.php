@@ -16,6 +16,14 @@ function format_log_entry_bodies($entry)
                 case 'application/x-www-form-urlencoded':
                     parse_str($entry->$body, $entry->$parsed);
                     break;
+                case 'text/plain':
+                    // Check to see if it looks like JSON
+                    if ( substr($entry->$body, 0, 1) == '{' && substr($entry->$body, -1, 1) == '}') {
+                        $json_data = json_decode( $entry->$body, true );
+                        if ( isset( $json_data ) )
+                            $entry->$parsed = $json_data;
+                    }
+                    break;
                 case 'application/json':
                     $entry->$parsed = json_decode( $entry->$body, true );
                     break;
