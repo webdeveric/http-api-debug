@@ -4,10 +4,11 @@ This plugin hooks into http_api_debug action to give you a record of the http re
 It only logs requests that use the WP_Http object.
 
 ## TODO
-Top level admin menu
-    HTTP API Debug
-        View Log
-        Search
-        Options
-            * Include/Exclude domains only
-            * Purge Policy (with purge now button)
+
+Options Page
+
+- Include/Exclude domains only
+- Purge Policy (daily, weekly, monthly)
+- Purge now button - and add to bulk options
+- Keep at most X log entries
+- Only record log if WP_DEBUG is true
