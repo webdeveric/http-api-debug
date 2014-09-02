@@ -3,13 +3,11 @@
 
 .log-entry{
 
-
-
     .full-width{
         display: block;
         clear: both;
         width: 100%;
-        margin: 0 0 $gutter-size 0;
+        margin: $gutter-size 0;
         box-sizing: border-box;
     }
 
@@ -20,7 +18,7 @@
     section{
         display: inline-block;
         vertical-align: top;
-        margin:0 0 $gutter-size 0;
+        margin: $gutter-size 0;
 
         & + section{
             margin-left:$gutter-size;
@@ -30,59 +28,61 @@
             margin:0 0 $gutter-size/3 0;
             padding:0;
             line-height: 1;
+        }       
+    }
+}
+
+.key-value-table{
+    float: left;
+    text-align: left;
+    border:0;
+    border-collapse: collapse;
+    background: #FFF;
+    @extend %shadowed;
+    margin-top:$gutter-size;
+
+    & + .key-value-table{
+        margin-left:$gutter-size;
+    }
+
+    caption{
+        font-size:16px;
+        margin:0 0 .5em 0;
+        font-weight: bold;
+        text-align: left;
+    }
+
+    thead{
+        background: rgb(225, 88, 69);
+        color: #FFF;
+    }
+
+    th, td{
+        padding:6px 12px;
+    }
+
+    th{
+        font-weight: bold;
+    }
+
+    tbody{
+        th{
+            white-space: nowrap;
+            vertical-align: top;
+        }
+        td {
+            white-space: pre-wrap;
+            word-break: break-all;
+
+
+        }
+        tr:nth-child(even){
+            background: $table-row-alt-color;
+            border-width: 1px 0;
+            border-style: solid;
+            border-color: $table-border-color;
         }
 
-        .key-value-table{
-            text-align: left;
-            border:0;
-            border-collapse: collapse;
-            background: #FFF;
-            @extend %shadowed;
-
-            & + .key-value-table{
-                margin-top:10px;
-            }
-
-            caption{
-                font-size:16px;
-                margin:0 0 .5em 0;
-                font-weight: bold;
-                text-align: left;
-            }
-
-            thead{
-                background: rgb(225, 88, 69);
-                color: #FFF;
-            }
-
-            th, td{
-                padding:6px 12px;
-            }
-
-            th{
-                font-weight: bold;
-            }
-
-            tbody{
-                th{
-                    white-space: nowrap;
-                    vertical-align: top;
-                }
-                td {
-                    white-space: pre-wrap;
-                    word-break: break-all;
-
-
-                }
-                tr:nth-child(even){
-                    background: $table-row-alt-color;
-                    border-width: 1px 0;
-                    border-style: solid;
-                    border-color: $table-border-color;
-                }
-
-            }
-        }
     }
 }
 
