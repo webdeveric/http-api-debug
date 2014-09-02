@@ -343,6 +343,32 @@ function delete_log_entry($log_id)
     return compact('entry_deleted', 'headers_deleted');
 }
 
+function purge_log_entries()
+{
+    global $wpdb;
+
+    $headers_deleted = $wpdb->query( "delete from {$wpdb->prefix}http_api_debug_log_headers" );
+    $entries_deleted = $wpdb->query( "delete from {$wpdb->prefix}http_api_debug_log" );
+
+    return compact('entries_deleted', 'headers_deleted');
+}
+
+function log_entries_delete_all_except($number_to_keep)
+{
+    global $wpdb;
+
+    $number_to_keep = (int)$number_to_keep;
+
+    if ( ! $number_to_keep )
+        throw new Exception('Specify number_to_keep');
+
+    $sql = "DELETE FROM {$wpdb->prefix}http_api_debug_log WHERE log_id <= ( SELECT log_id FROM ( SELECT log_id FROM {$wpdb->prefix}http_api_debug_log ORDER BY log_id DESC LIMIT 1 OFFSET {$number_to_keep} ) as last_log_id )";
+
+    $entries_deleted = $wpdb->query( $sql );
+
+    return $entries_deleted;
+}
+
 function array_key_not_empty($key, array $data)
 {
     if ( ! array_key_exists($key, $data) )
