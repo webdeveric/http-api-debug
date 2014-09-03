@@ -17,11 +17,10 @@ function format_log_entry_bodies($entry)
                     parse_str($entry->$body, $entry->$parsed);
                     break;
                 case 'text/plain':
-                    // Check to see if it looks like JSON
-                    if ( substr($entry->$body, 0, 1) == '{' && substr($entry->$body, -1, 1) == '}') {
-                        $json_data = json_decode( $entry->$body, true );
-                        if ( isset( $json_data ) )
-                            $entry->$parsed = $json_data;
+                    if ( looks_like_json( $entry->$body ) ) {
+                        $decoded = maybe_json_decode( $entry->$body, true );
+                        if ( $decoded !== $entry->$body )
+                            $entry->$parsed = $decoded;
                     }
                     break;
                 case 'application/json':
