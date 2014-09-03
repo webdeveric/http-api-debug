@@ -38,7 +38,18 @@ function format_log_entry_bodies($entry)
                     $entry->$parsed = yaml_parse( $entry->$body, -1 );
                     break;
             }
+
+            if ( isset( $entry->$parsed ) && is_array( $entry->$parsed ) ) {
+
+                foreach ( $entry->$parsed as &$value ) {
+                    if ( looks_like_json( $value ) )
+                        $value = maybe_json_decode( $value, true );
+                }
+
+            }
+
         }
+
     }
 
     return $entry;

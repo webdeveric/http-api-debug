@@ -416,15 +416,18 @@ function html_attr(array $attributes = array())
     return implode(' ', $attr);
 }
 
-function looks_like_json($string)
+function looks_like_json($data)
 {
+    if ( ! is_string($data) )
+        return false;
+
     // http://www.ietf.org/rfc/rfc4627.txt
     return ! preg_match(
-        '/[^,:{}\\[\\]0-9.\\-+Eaeflnr-u \\n\\r\\t]/',
+        '/[^,:\{\}\\[\\]0-9.\\-+Eaeflnr-u \\n\\r\\t]/',
         preg_replace(
             '/"(\\.|[^"\\\\])*"/',
             '',
-            $string
+            stripslashes($data)
         )
     );
 }
