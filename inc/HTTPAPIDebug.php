@@ -22,8 +22,9 @@ class HTTPAPIDebug
         $this->options_page_slug = 'http-api-debug-options';
         $this->options_group     = 'http-api-debug';
         $this->require_wp_debug  = \get_site_option( 'http-api-debug-require-wp-debug', 0 );
+        $this->ignore_cron       = \get_site_option( 'http-api-debug-ignore-cron', 0 );
         $this->domain_filter     = \get_site_option( 'http-api-debug-domain-filter', 'exclude' );
-        $this->domains           = explode( "\n", \get_site_option( 'http-api-debug-domains', '' ) );
+        $this->domains           = array_map('trim', explode( "\n", \get_site_option( 'http-api-debug-domains', '' ) ) );
 
         register_activation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'activate') );
         register_deactivation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'deactivate') );
@@ -33,15 +34,26 @@ class HTTPAPIDebug
         // add_filter( 'http_api_debug_wp_error_response_code', array(&$this, 'no_dns_record_wp_error_response_code'), 10, 3);
 
         add_action( 'plugins_loaded', array( &$this, 'update_db_check' ) );
-
-        if ( ! $this->require_wp_debug || ( defined('WP_DEBUG') && constant('WP_DEBUG') == true ) )
-            add_action( 'http_api_debug', array( &$this, 'http_api_debug' ), 10, 5 );
-
         add_action( 'admin_menu', array( &$this, 'admin_menu' ), 10, 0 );
         add_action( 'admin_init', array( &$this, 'admin_init' ), 10, 0 );
 
         add_filter( 'admin_footer_text', array( &$this, 'admin_footer_text' ), PHP_INT_MAX, 1);
         add_filter( 'set-screen-option', array( &$this, 'set_screen_option' ), 10, 3 );
+
+        if ( ! $this->require_wp_debug || ( defined('WP_DEBUG') && constant('WP_DEBUG') == true ) )
+            add_action( 'http_api_debug', array( &$this, 'http_api_debug' ), 10, 5 );
+
+        if ( $this->ignore_cron )
+            add_filter('http_api_debug_record_log', array( &$this, 'ignore_cron'), 10, 6);
+
+    }
+
+    public function ignore_cron($record_log, $response, $context, $transport_class, $request_args, $url)
+    {
+        if (is_cron_request($url))
+            return false;
+
+        return $record_log;
     }
 
     public function admin_menu()
@@ -90,7 +102,9 @@ class HTTPAPIDebug
         );
 
         register_setting( $this->options_group, 'http-api-debug-require-wp-debug', 'intval' );
-        
+
+        register_setting( $this->options_group, 'http-api-debug-ignore-cron', 'intval' );
+
         register_setting(
             $this->options_group,
             'http-api-debug-domain-filter',
@@ -117,6 +131,7 @@ class HTTPAPIDebug
         );
 
         $require_wp_debug = $this->require_wp_debug;
+        $ignore_cron      = $this->ignore_cron;
         $domain_filter    = $this->domain_filter;
         $domains          = implode("\n", $this->domains);
 
@@ -125,7 +140,19 @@ class HTTPAPIDebug
             'Only log requests if WP_DEBUG is true',
             function($args) use ($require_wp_debug) {
                 $checked = \checked( 1, $require_wp_debug, false );
-                echo '<input type="checkbox" value="1" name="http-api-debug-require-wp-debug" ', $checked, ' />';
+                $input = '<input type="checkbox" value="1" name="http-api-debug-require-wp-debug" ' . $checked . ' />';
+                printf('<label>%1$s <span>WP_DEBUG = %2$s</span></label>', $input, defined('WP_DEBUG') ? var_export( constant('WP_DEBUG'), true) : 'not defined' );
+            },
+            $this->options_page_slug,
+            $this->options_page_slug . '-basic'
+        );
+
+        add_settings_field(
+            'http-api-debug-ignore-cron',
+            'Don&#8217;t log cron requests',
+            function($args) use ($ignore_cron) {
+                $checked = \checked( 1, $ignore_cron, false );
+                echo '<input type="checkbox" value="1" name="http-api-debug-ignore-cron" ', $checked, ' />';
             },
             $this->options_page_slug,
             $this->options_page_slug . '-basic'
@@ -157,42 +184,6 @@ class HTTPAPIDebug
             $this->options_page_slug,
             $this->options_page_slug . '-basic'
         );
-
-    }
-
-    public function input($args)
-    {
-        if ( ! isset($args['attributes'])) {
-            $args['attributes'] = array();
-        }
-
-        if ( ! is_array($args['attributes'])) {
-            $args['attributes'] = (array)$args['attributes'];
-        }
-
-        if ( ! isset($args['attributes']['type'])) {
-            $args['attributes']['type'] = 'text';
-        }
-
-        if ( isset($args['id']) && ! isset($args['attributes']['id'])) {
-            $args['attributes']['id'] = $args['id'];
-        }
-
-        if ( ! isset($args['attributes']['id'])) {
-            $args['attributes']['id'] = '';
-        }
-
-        if ( ! isset($args['attributes']['name'])) {
-            $args['attributes']['name'] = $args['attributes']['id'];
-        }
-
-        if ( isset($args['value']) && ! isset($args['attributes']['value'])) {
-            $args['attributes']['value'] = $args['value'];
-        }
-        
-        $attributes = html_attr($args['attributes']);
-
-        echo '<input ', $attributes, ' />';
 
     }
 
@@ -330,13 +321,15 @@ class HTTPAPIDebug
 
     public function options_admin_page()
     {
+
+        if (filter_has_var(INPUT_GET, 'settings-updated') && $_GET['settings-updated'] )
+            echo updated_message('Options saved!');
         ?>
 
         <div class="wrap">
             <h2>HTTP API Debug</h2>
             <form method="post" action="options.php">
                 <?php
-                    // wp_nonce_field( 'update-options' );
                     settings_fields($this->options_group);
                     do_settings_sections($this->options_page_slug);
                     submit_button('Save Options');
@@ -529,8 +522,18 @@ class HTTPAPIDebug
 
     public function http_api_debug($response, $context, $transport_class, $request_args, $url)
     {
+        $host = parse_url($url, PHP_URL_HOST);
+
+        if ($this->domain_filter == 'exclude' && in_array($host, $this->domains) ){
+            return;
+        }
+
+        if ($this->domain_filter == 'include' && ! in_array($host, $this->domains) ){
+            return;
+        }
+
         $log_this_entry = apply_filters('http_api_debug_record_log', true, $response, $context, $transport_class, $request_args, $url);
-        
+
         $this->db->show_errors();
 
         if ( ! $log_this_entry)
@@ -589,7 +592,7 @@ class HTTPAPIDebug
             function_exists('get_current_site') ? \get_current_site() : 0,
             get_current_blog_id(),
             $request_method,
-            parse_url($url, PHP_URL_HOST),
+            $host,
             $url,
             $this->get_response_code($url, $response),
             $request_args,

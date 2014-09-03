@@ -16,7 +16,7 @@ function table_size( $table, $add_prefix = true )
         )
     );
 
-    return $bytes;
+    return (int)$bytes;
 }
 
 function table_columns( $table, $add_prefix = true )
@@ -113,17 +113,39 @@ function str_ends_with($haystack, $needle)
     return $needle === "" || substr($haystack, -strlen($needle)) === $needle;
 }
 
+function updated_message($message)
+{
+    return '<div class="updated">' . \wpautop($message) . '</div>';
+}
+
+function error_message($message)
+{
+    return '<div class="error">' . \wpautop($message) . '</div>';
+}
+
+function debug_message($message)
+{
+    return '<div class="error"><pre>' . print_r($message, true) . '</pre></div>';
+}
+
 function admin_notice($message)
 {
     add_action('admin_notices', function () use ($message) {
-        echo '<div class="updated">', \wpautop($message), '</div>';
+        echo updated_message( $message );
+    });
+}
+
+function admin_error($message)
+{
+    add_action('admin_notices', function () use ($message) {
+        echo error_message( $message );
     });
 }
 
 function admin_debug($message)
 {
     add_action('admin_notices', function () use ($message) {
-        echo '<div class="error"><pre>', print_r($message, true), '</pre></div>';
+        echo debug_message($message);
     });
 }
 

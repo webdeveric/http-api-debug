@@ -7,8 +7,6 @@ It only logs requests that use the WP_Http object.
 
 Options Page
 
-- Include/Exclude domains only
 - Purge Policy (daily, weekly, monthly)
 - Purge now button - and add to bulk options
 - Keep at most X log entries
-- Only record log if WP_DEBUG is true

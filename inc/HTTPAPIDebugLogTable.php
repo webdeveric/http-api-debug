@@ -49,9 +49,11 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             case 'log_id':
             case 'context':
             case 'transport':
-            case 'log_time':
             case 'url':
                 return $item[$column_name];
+            case 'log_time':
+                $htd = human_time_diff( strtotime($item[$column_name]) );
+                return $item[$column_name] . '<p>' . $htd . ' ago</p>';
             case 'status':
                 return sprintf('<span class="status status-%2$s">%1$s</span>', $item[$column_name], esc_attr($item[$column_name]));
             case 'method':

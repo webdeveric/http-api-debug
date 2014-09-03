@@ -151,16 +151,14 @@ function format_log_entry_url($entry)
 add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry_url', 10, 2 );
 
 
-// This is a simple example. There will be an options page in the admin where user can input the domains to ignore.
-function dont_log_these_urls($record_log, $response, $context, $transport_class, $request_args, $url)
+/*
+// This is a simple example. There is an options page in the admin where you can input the domains to ignore.
+function dont_log_wpapi($record_log, $response, $context, $transport_class, $request_args, $url)
 {
-    if ( in_array( parse_url($url, PHP_URL_HOST), array('api.wordpress.org', 'rizzo.lonelyplanet.com') ) )
-        return false;
-
-    if (is_cron_request($url))
+    if ( parse_url($url, PHP_URL_HOST) == 'api.wordpress.org' )
         return false;
 
     return $record_log;
-
 }
-add_filter('http_api_debug_record_log', __NAMESPACE__ . '\dont_log_these_urls', 10, 6);
+add_filter('http_api_debug_record_log', __NAMESPACE__ . '\dont_log_wpapi', 10, 6);
+*/
