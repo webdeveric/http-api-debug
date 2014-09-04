@@ -162,7 +162,7 @@ class HTTPAPIDebug
             'http-api-debug-domain-filter',
             'Domain filter',
             function($args) use ($domain_filter) {
-                foreach (array('exclude', 'include') as $filter) {
+                foreach ( array('exclude', 'include') as $filter ) {
                     printf(
                         '<p><label><input type="radio" value="%1$s" name="http-api-debug-domain-filter" %3$s /><span>%2$s</span></label></p>',
                         $filter,
@@ -487,7 +487,7 @@ class HTTPAPIDebug
     protected function wp_error_request_timedout(\WP_Error $response)
     {
         $messages = $response->get_error_messages('http_request_failed');
-        foreach ($messages as &$message) {
+        foreach ( $messages as &$message ) {
             if (str_starts_with($message, 'Operation timed out'))
                 return true;
         }
@@ -609,8 +609,14 @@ class HTTPAPIDebug
 
         if ($log_id) {
 
-            foreach ( array('req' => &$request_headers, 'res' => &$response_headers) as $header_type => &$headers ) {
-                foreach ($headers as $header_name => &$header_value) {
+            $header_types = array(
+                'req' => &$request_headers,
+                'res' => &$response_headers
+            );
+
+            foreach ( $header_types as $header_type => &$headers ) {
+
+                foreach ( $headers as $header_name => &$header_value ) {
 
                     if ( is_array( $header_value ) )
                         $header_value = json_encode( $header_value );
@@ -624,7 +630,9 @@ class HTTPAPIDebug
                             $header_value
                         )
                     );
+
                 }
+
             }
 
         }
