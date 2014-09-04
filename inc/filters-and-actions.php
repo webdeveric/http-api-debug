@@ -172,3 +172,56 @@ function dont_log_wpapi($record_log, $response, $context, $transport_class, $req
 }
 add_filter('http_api_debug_record_log', __NAMESPACE__ . '\dont_log_wpapi', 10, 6);
 */
+
+
+function log_size($which)
+{
+    if ($which === 'top'):
+    ?>
+        <span class="log-size tooltip-top" data-tooltip="The size is the sum of the data in the tables and the indexes on the tables.">
+            Log Size: <strong><?php echo convert_bytes( table_size('http_api_debug_log') + table_size('http_api_debug_log_headers'), false, 2 ); ?></strong>
+        </span>
+    <?php
+    endif;
+}
+add_action('http-api-debug-extra-tablenav', __NAMESPACE__ . '\log_size', 10, 1 );
+
+
+function domain_dropdown($which)
+{
+    static $dropdown;
+
+    if ( isset( $dropdown ) ) {
+        echo $dropdown;
+        return;
+    }
+
+    global $wpdb;
+
+    $hosts = $wpdb->get_results("select host, count(*) as number_of_entries from {$wpdb->prefix}http_api_debug_log group by host order by host asc");
+
+    $options = array();
+
+    foreach ( $hosts as &$host ) {
+        $options[] = sprintf('<option value="%1$s">%1$s (%2$d)</option>', $host->host, $host->number_of_entries );
+    }
+
+    $dropdown = sprintf(
+        '<div class="alignleft actions"><label class="screen-reader-text" for="host-selector-%1$s">Choose a domain</label><select class="host-selector" id="host-selector-%1$s" name="host">%2$s</select></div>',
+        $which,
+        implode('', $options)
+    );
+
+    /*
+    <script>
+    jQuery('.host-selector').change()
+    </script>
+    */
+
+    echo $dropdown;
+
+}
+// add_action('http-api-debug-extra-tablenav', __NAMESPACE__ . '\domain_dropdown', 1, 1 );
+
+
+

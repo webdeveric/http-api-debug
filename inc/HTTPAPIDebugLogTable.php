@@ -174,13 +174,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
     public function extra_tablenav( $which )
     {
-        if ($which === 'top'):
-        ?>
-            <span class="log-size tooltip-top" data-tooltip="The size is the sum of the data in the tables and the indexes on the tables.">
-                Log Size: <strong><?php echo convert_bytes( table_size('http_api_debug_log') + table_size('http_api_debug_log_headers'), false, 2 ); ?></strong>
-            </span>
-        <?php
-        endif;
+        do_action('http-api-debug-extra-tablenav', $which );
     }
 
     public function no_items() {
