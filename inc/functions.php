@@ -294,7 +294,7 @@ function get_adjacent_log_id($log_id, $prev = true)
 
     $adjacent_log_id = $wpdb->get_var(
         $sql = $wpdb->prepare(
-            "select log_id from {$wpdb->prefix}http_api_debug_log where log_time {$comparison} (select log_time from {$wpdb->prefix}http_api_debug_log where log_id = %d) and log_id <> %d order by log_time {$order} limit 1",
+            "select log_id from {$wpdb->prefix}http_api_debug_log where microtime {$comparison} (select microtime from {$wpdb->prefix}http_api_debug_log where log_id = %d) and log_id <> %d order by microtime {$order} limit 1",
             $log_id,
             $log_id
         )

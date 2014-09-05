@@ -1,10 +1,11 @@
 <?php
 namespace WDE\HTTPAPIDebug;
 
-$nav_link_format = '<a href="%1$s" class="log-nav log-nav-%3$s tooltip tooltip-bottom" data-tooltip="%2$s log entry"><span>%2$s</span></a>';
+$nav_link_format = '<a href="%1$s" class="log-nav log-nav-%3$s tooltip-bottom" data-tooltip="%2$s log entry"><span>%2$s</span></a>';
 $nav_link_format_placeholder = '<span class="log-nav log-nav-placeholder tooltip tooltip-bottom" data-tooltip="No %1$s log entry"><span>&nbsp;</span></span>';
 
 $prev_url = get_prev_log_entry_url($entry->log_id);
+
 $next_url = get_next_log_entry_url($entry->log_id);
 
 ?>

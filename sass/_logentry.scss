@@ -92,6 +92,10 @@
     background: #FFF;
     @extend %shadowed;
 
+    a:focus{
+        box-shadow: none;
+    }
+
     .log-nav{
         @extend %log-entry-meta-box;
         position: relative;
