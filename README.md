@@ -10,3 +10,6 @@ Options Page
 - Purge Policy (daily, weekly, monthly)
 - Purge now button - and add to bulk options
 - Keep at most X log entries
+
+List Table
+- Add ajax action to append domain to block list, if domain filter is set to exclude.
