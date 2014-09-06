@@ -12,7 +12,7 @@ $next_url = get_next_log_entry_url($entry->log_id);
 <article class="log-entry">
 
     <header>
-        <h3>Log Entry #<?php echo intval($entry->log_id); ?> @ <time datetime="<?php echo \esc_attr($entry->log_time); ?>"><?php echo $entry->log_time; ?></time></h3>
+        <h3>Log Entry #<?php echo intval($entry->log_id); ?> - <time datetime="<?php echo date('Y-m-d H:i:s', $entry->microtime); ?>"><?php echo date( get_option('date_format') . ' - ' . get_option('time_format'), $entry->microtime); ?></time></h3>
         <div class="log-entry-meta">
             <?php
 

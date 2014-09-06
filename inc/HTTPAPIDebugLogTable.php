@@ -51,9 +51,19 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             case 'transport':
             case 'url':
                 return $item[$column_name];
-            case 'log_time':
-                $htd = human_time_diff( strtotime($item[$column_name]) );
-                return $item[$column_name] . '<p>' . $htd . ' ago</p>';
+            case 'microtime':
+
+                $date_format = get_option('date_format');
+                $time_format = get_option('time_format');
+
+                return sprintf(
+                    '<span class="date-meta entry-date-time" data-tooltip="Timezone: %3$s"><span class="entry-date">%1$s</span> at <span class="entry-time">%2$s</span></span><span class="date-meta entry-htd">%4$s ago</span>',
+                    date( $date_format, $item[$column_name]),
+                    date( $time_format, $item[$column_name]),
+                    date( 'e', $item[$column_name]),
+                    human_time_diff( $item[$column_name] )
+                );
+
             case 'status':
                 return sprintf('<span class="status status-%2$s">%1$s</span>', $item[$column_name], esc_attr($item[$column_name]));
             case 'method':
@@ -147,7 +157,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             $log_table_columns
         );
         
-        $columns['log_time'] = 'When';
+        $columns['microtime'] = 'When';
 
 
         return $columns;
@@ -157,7 +167,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
     {
         $sortable_columns = array(
             'log_id'   => array('log_id', false),
-            'log_time' => array('log_time', true),
+            'microtime' => array('microtime', true),
             'url'      => array('url', false),
             'status'   => array('status', false)
         );
@@ -297,7 +307,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         $this->process_bulk_action();
 
-        $order_by = isset($_REQUEST['orderby']) && array_key_exists( $_REQUEST['orderby'], $columns ) ? $_REQUEST['orderby'] : 'log_time';
+        $order_by = isset($_REQUEST['orderby']) && array_key_exists( $_REQUEST['orderby'], $columns ) ? $_REQUEST['orderby'] : 'microtime';
 
         $order = 'DESC';
 

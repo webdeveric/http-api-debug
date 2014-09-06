@@ -433,7 +433,6 @@ class HTTPAPIDebug
             response_body LONGTEXT NOT NULL,
             context varchar(32) NOT NULL default 'response',
             transport varchar(32) NOT NULL default '',
-            log_time datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
             microtime DOUBLE UNSIGNED NOT NULL DEFAULT 0,
             PRIMARY KEY  (log_id),
             INDEX site_blog_ids (site_id, blog_id),
@@ -587,9 +586,9 @@ class HTTPAPIDebug
 
         $insert_log_entry = $this->db->prepare(
             "insert into {$this->log_table}
-                (site_id, blog_id, method, host, url, status, request_args, request_body, response_data, response_body, context, transport, log_time, microtime)
+                (site_id, blog_id, method, host, url, status, request_args, request_body, response_data, response_body, context, transport, microtime)
                 values
-                (%d, %d, %s, %s, %s, %d, %s, %s, %s, %s, %s, %s, NOW(), %f)",
+                (%d, %d, %s, %s, %s, %d, %s, %s, %s, %s, %s, %s, %f)",
             function_exists('get_current_site') ? \get_current_site() : 0,
             get_current_blog_id(),
             $request_method,
