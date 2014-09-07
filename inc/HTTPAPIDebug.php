@@ -25,6 +25,7 @@ class HTTPAPIDebug
         $this->ignore_cron       = \get_site_option( 'http-api-debug-ignore-cron', 0 );
         $this->domain_filter     = \get_site_option( 'http-api-debug-domain-filter', 'exclude' );
         $this->domains           = array_map('trim', explode( "\n", \get_site_option( 'http-api-debug-domains', '' ) ) );
+        $this->logs_to_keep      = \get_site_option( 'http-api-debug-logs-to-keep', 0 );
 
         register_activation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'activate') );
         register_deactivation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'deactivate') );
@@ -130,10 +131,22 @@ class HTTPAPIDebug
             }
         );
 
+        add_settings_section(
+            $this->options_page_slug . '-purge',
+            'Purge Options',
+            function() {
+                echo '<p>Update these settings to control how the log entries get purged.</p>';
+            },
+            $this->options_page_slug
+        );
+
+        register_setting( $this->options_group, 'http-api-debug-logs-to-keep', 'abs' );
+
         $require_wp_debug = $this->require_wp_debug;
         $ignore_cron      = $this->ignore_cron;
         $domain_filter    = $this->domain_filter;
         $domains          = implode("\n", $this->domains);
+        $logs_to_keep     = $this->logs_to_keep;
 
         add_settings_field(
             'http-api-debug-require-wp-debug',
@@ -183,6 +196,19 @@ class HTTPAPIDebug
             },
             $this->options_page_slug,
             $this->options_page_slug . '-basic'
+        );
+
+        add_settings_field(
+            'http-api-debug-logs-to-keep',
+            'Maximum log entries to keep<br /><small>(0 = no limit)</small>',
+            function($args) use ($logs_to_keep) {
+                printf(
+                    '<input type="number" name="http-api-debug-logs-to-keep" value="%d" min="0" />',
+                    $logs_to_keep
+                );
+            },
+            $this->options_page_slug,
+            $this->options_page_slug . '-purge'
         );
 
     }
@@ -637,6 +663,9 @@ class HTTPAPIDebug
             }
 
         }
+
+        if ($this->logs_to_keep > 0)
+            log_entries_delete_all_except($this->logs_to_keep);
 
     }
 
