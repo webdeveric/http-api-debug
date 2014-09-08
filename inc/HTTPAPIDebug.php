@@ -136,7 +136,7 @@ class HTTPAPIDebug
             $this->options_page_slug . '-purge',
             'Purge Options',
             function() {
-                echo '<p>Entries are only deleted when a new entery is added to the log.</p>';
+                echo '<p>Entries are only deleted when a new entry is added to the log.</p>';
             },
             $this->options_page_slug
         );
@@ -217,7 +217,7 @@ class HTTPAPIDebug
 
         add_settings_field(
             'http-api-debug-purge-after',
-            'Delete log entries older than X seconds',
+            'Delete log entries older than X seconds<br /><small>(0 = disabled)</small>',
             function($args) use ($purge_after) {
                 printf(
                     '<input type="number" name="http-api-debug-purge-after" id="http-api-debug-purge-after" value="%d" min="0" /><output name="human-purge-time" id="human-purge-time"></output><div id="purge-time-quick-links"></div>',
