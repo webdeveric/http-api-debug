@@ -7,7 +7,6 @@ It only logs requests that use the WP_Http object.
 
 Options Page
 
-- Purge Policy (daily, weekly, monthly)
 - Purge now button - and add to bulk options
 
 List Table
