@@ -293,7 +293,8 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             'request_args',
             'request_body',
             'response_body',
-            'response_data'
+            'response_data',
+            'backtrace'
         );
 
         if ( ! is_multisite()) {

@@ -81,4 +81,11 @@ $next_url = get_next_log_entry_url($entry->log_id);
 
     <?php endforeach; ?>
 
+    <?php if (isset($entry->backtrace) && ! empty($entry->backtrace)): ?>
+    <section class="full-width">
+        <h2>Backtrace</h2>
+        <code class="body-output"><?php echo $entry->backtrace; ?></code>
+    </section>
+    <?php endif; ?>
+
 </article>

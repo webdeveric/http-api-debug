@@ -391,6 +391,22 @@ function log_entries_delete_all_except($number_to_keep)
     return $entries_deleted;
 }
 
+function log_entries_delete_older_than($seconds)
+{
+    global $wpdb;
+
+    $seconds = abs((int)$seconds);
+
+    if ( ! $seconds )
+        throw new Exception('Specify $seconds');
+
+    $sql = "delete log, headers from {$wpdb->prefix}http_api_debug_log as log join {$wpdb->prefix}http_api_debug_log_headers as headers using (log_id) where log.microtime <  UNIX_TIMESTAMP() - {$seconds}";
+
+    $entries_deleted = $wpdb->query( $sql );
+
+    return $entries_deleted;
+}
+
 function array_key_not_empty($key, array $data)
 {
     if ( ! array_key_exists($key, $data) )

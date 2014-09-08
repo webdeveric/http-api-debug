@@ -26,6 +26,7 @@ class HTTPAPIDebug
         $this->domain_filter     = \get_site_option( 'http-api-debug-domain-filter', 'exclude' );
         $this->domains           = array_map('trim', explode( "\n", \get_site_option( 'http-api-debug-domains', '' ) ) );
         $this->logs_to_keep      = \get_site_option( 'http-api-debug-logs-to-keep', 0 );
+        $this->purge_after       = \get_site_option( 'http-api-debug-purge-after', '' );
 
         register_activation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'activate') );
         register_deactivation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'deactivate') );
@@ -135,18 +136,21 @@ class HTTPAPIDebug
             $this->options_page_slug . '-purge',
             'Purge Options',
             function() {
-                echo '<p>Update these settings to control how the log entries get purged.</p>';
+                echo '<p>Entries are only deleted when a new entery is added to the log.</p>';
             },
             $this->options_page_slug
         );
 
         register_setting( $this->options_group, 'http-api-debug-logs-to-keep', 'abs' );
 
+        register_setting( $this->options_group, 'http-api-debug-purge-after', 'abs' );
+
         $require_wp_debug = $this->require_wp_debug;
         $ignore_cron      = $this->ignore_cron;
         $domain_filter    = $this->domain_filter;
         $domains          = implode("\n", $this->domains);
         $logs_to_keep     = $this->logs_to_keep;
+        $purge_after      = $this->purge_after;
 
         add_settings_field(
             'http-api-debug-require-wp-debug',
@@ -205,6 +209,19 @@ class HTTPAPIDebug
                 printf(
                     '<input type="number" name="http-api-debug-logs-to-keep" value="%d" min="0" />',
                     $logs_to_keep
+                );
+            },
+            $this->options_page_slug,
+            $this->options_page_slug . '-purge'
+        );
+
+        add_settings_field(
+            'http-api-debug-purge-after',
+            'Delete log entries older than X seconds',
+            function($args) use ($purge_after) {
+                printf(
+                    '<input type="number" name="http-api-debug-purge-after" id="http-api-debug-purge-after" value="%d" min="0" /><output name="human-purge-time" id="human-purge-time"></output><div id="purge-time-quick-links"></div>',
+                    $purge_after
                 );
             },
             $this->options_page_slug,
@@ -457,6 +474,7 @@ class HTTPAPIDebug
             request_body LONGTEXT NOT NULL,
             response_data LONGTEXT NOT NULL,
             response_body LONGTEXT NOT NULL,
+            backtrace LONGTEXT NOT NULL,
             context varchar(32) NOT NULL default 'response',
             transport varchar(32) NOT NULL default '',
             microtime DOUBLE UNSIGNED NOT NULL DEFAULT 0,
@@ -610,11 +628,15 @@ class HTTPAPIDebug
 
         $response_data = json_encode($response);
 
+        $backtrace = print_r( \debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ), true );
+        $backtrace = str_replace( DB_PASSWORD, 'hidden for your protection', $backtrace );
+        $backtrace = str_replace( ABSPATH, '/', $backtrace );
+
         $insert_log_entry = $this->db->prepare(
             "insert into {$this->log_table}
-                (site_id, blog_id, method, host, url, status, request_args, request_body, response_data, response_body, context, transport, microtime)
+                (site_id, blog_id, method, host, url, status, request_args, request_body, response_data, response_body, backtrace, context, transport, microtime)
                 values
-                (%d, %d, %s, %s, %s, %d, %s, %s, %s, %s, %s, %s, %f)",
+                (%d, %d, %s, %s, %s, %d, %s, %s, %s, %s, %s, %s, %s, %f)",
             function_exists('get_current_site') ? \get_current_site() : 0,
             get_current_blog_id(),
             $request_method,
@@ -625,6 +647,7 @@ class HTTPAPIDebug
             $request_body,
             $response_data,
             $response_body,
+            $backtrace,
             $context,
             $transport_class,
             microtime(true)
@@ -664,8 +687,11 @@ class HTTPAPIDebug
 
         }
 
-        if ($this->logs_to_keep > 0)
-            log_entries_delete_all_except($this->logs_to_keep);
+        if ( $this->logs_to_keep > 0 )
+            log_entries_delete_all_except( $this->logs_to_keep );
+
+        if ( $this->purge_after > 0 )
+            log_entries_delete_older_than( $this->purge_after );
 
     }
 
