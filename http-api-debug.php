@@ -9,7 +9,3 @@ include __DIR__ . '/inc/filters-and-actions.php';
 global $wpdb;
 
 new HTTPAPIDebug($wpdb);
-
-// wp_remote_get('http://phplug.in/');
-// wp_remote_get('http://ip.phplug.in/?output=json');
-// wp_remote_get('http://ip.phplug.in/?output=xml');
