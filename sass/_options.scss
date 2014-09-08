@@ -1,0 +1,17 @@
+#human-purge-time{
+    margin: 0 0 0 $gutter-size/3;
+    font-size: smaller;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+#purge-time-quick-links{
+    margin: $gutter-size/3 0 0 0;
+
+    a{
+        cursor: pointer;
+        display: inline-block;
+        margin: 0 $gutter-size/3 0 0;
+        font-size: smaller;
+    }
+}
