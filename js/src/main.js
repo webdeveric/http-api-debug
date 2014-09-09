@@ -33,6 +33,7 @@
         var output = $('#human-purge-time');
         var input  = $('#http-api-debug-purge-after');
         var links  = $('#purge-time-quick-links');
+        var times  = $('#predefined-times option');
 
         function update_seconds_output(seconds) {
             output.val( seconds ? sectostr( seconds ) : '' );
@@ -47,24 +48,19 @@
         } );
 
         update_seconds_output( input.val() );
-        
-        var one_day = $("<a>One day</a>").click( function() {
-            input.val( 86400 );
-            update_seconds_output( input.val() );
+
+        times.each( function( index, element ) {
+
+            var seconds = this.value;
+            var link = $("<a>" + this.text + "</a>").click( function() {
+                input.val( seconds );
+                update_seconds_output( seconds );
+            } );
+
+            links.append(link);
+
         } );
 
-        var one_week = $("<a>One week</a>").click( function() {
-            input.val( 604800 );
-            update_seconds_output( input.val() );
-        } );
-
-        var one_month = $("<a>One month</a>").click( function() {
-            input.val( 26297434 );
-            update_seconds_output( input.val() );
-        } );
-
-        links.append(one_day).append(one_week).append(one_month);
-        
     } );
 
 })(jQuery);

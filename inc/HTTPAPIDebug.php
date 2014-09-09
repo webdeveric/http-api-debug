@@ -25,8 +25,8 @@ class HTTPAPIDebug
         $this->ignore_cron       = \get_site_option( 'http-api-debug-ignore-cron', 0 );
         $this->domain_filter     = \get_site_option( 'http-api-debug-domain-filter', 'exclude' );
         $this->domains           = array_map('trim', explode( "\n", \get_site_option( 'http-api-debug-domains', '' ) ) );
-        $this->logs_to_keep      = \get_site_option( 'http-api-debug-logs-to-keep', 0 );
-        $this->purge_after       = \get_site_option( 'http-api-debug-purge-after', '' );
+        $this->logs_to_keep      = abs( \get_site_option( 'http-api-debug-logs-to-keep', 0 ) );
+        $this->purge_after       = abs( \get_site_option( 'http-api-debug-purge-after', 0 ) );
 
         register_activation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'activate') );
         register_deactivation_hook( HTTP_API_DEBUG_FILE, array(&$this, 'deactivate') );
@@ -219,10 +219,19 @@ class HTTPAPIDebug
             'http-api-debug-purge-after',
             'Delete log entries older than X seconds<br /><small>(0 = disabled)</small>',
             function($args) use ($purge_after) {
-                printf(
-                    '<input type="number" name="http-api-debug-purge-after" id="http-api-debug-purge-after" value="%d" min="0" /><output name="human-purge-time" id="human-purge-time"></output><div id="purge-time-quick-links"></div>',
-                    $purge_after
-                );
+                ?>
+
+                <input type="number" name="http-api-debug-purge-after" id="http-api-debug-purge-after" value="<?php echo $purge_after; ?>" min="0" required list="predefined-times" />
+                <output name="human-purge-time" id="human-purge-time"></output>
+                <div id="purge-time-quick-links"></div>
+                <datalist id="predefined-times">
+                    <option value="0">Disabled</option>
+                    <option value="86400">One day</option>
+                    <option value="604800">One week</option>
+                    <option value="26297434">One month</option>
+                </datalist>
+
+                <?php
             },
             $this->options_page_slug,
             $this->options_page_slug . '-purge'
