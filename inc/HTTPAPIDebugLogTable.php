@@ -77,8 +77,9 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
                 return $this->json_column( $item['log_id'], $column_name, $item[$column_name] );
             case 'request_body':
             case 'response_body':
+            case 'backtrace':
                 $body = $item[$column_name];
-                return empty($body) ? 'Not Sent' : substr(htmlentities($body), 0, 200);
+                return empty($body) ? 'Empty' : substr(htmlentities($body), 0, 200);
             case 'request_headers':
             case 'response_headers':
                 return $column_name;

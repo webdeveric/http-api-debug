@@ -637,9 +637,12 @@ class HTTPAPIDebug
 
         $response_data = json_encode($response);
 
-        $backtrace = print_r( \debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ), true );
-        $backtrace = str_replace( DB_PASSWORD, 'hidden for your protection', $backtrace );
+        $backtrace = print_r( \debug_backtrace(), true );
         $backtrace = str_replace( ABSPATH, '/', $backtrace );
+
+        foreach ( array('DB_USER', 'DB_PASSWORD') as $field ) {
+            $backtrace = str_replace( constant($field), 'hidden for your protection', $backtrace );
+        }
 
         $insert_log_entry = $this->db->prepare(
             "insert into {$this->log_table}
