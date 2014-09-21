@@ -1,7 +1,5 @@
 <?php
 
-namespace WDE\HTTPAPIDebug;
-
 function table_size( $table, $add_prefix = true )
 {
     global $wpdb;
