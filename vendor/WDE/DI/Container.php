@@ -61,7 +61,6 @@ class Container implements ArrayAccess, IteratorAggregate
         return null;
     }
 
-
     public function register($name, $callback, $lookup_alias = false)
     {
         $name = trim( $name, '\\' );
@@ -132,7 +131,7 @@ class Container implements ArrayAccess, IteratorAggregate
 
     public function has($name)
     {
-        $fields = array('callbacks', 'objects', 'aliases');
+        $fields = array('callbacks', 'objects', 'aliases', 'arguments');
 
         foreach ( $fields as &$field ) {
             if (array_key_exists($name, $this->$field))
