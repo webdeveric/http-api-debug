@@ -27,15 +27,10 @@ function table_columns( $table, $add_prefix = true )
     return $wpdb->get_col( 'DESCRIBE ' . $table, 0 );
 }
 
-function table_exists( $table, $add_prefix = true )
+function table_exists( $table )
 {
     global $wpdb;
-
-    if ($add_prefix)
-        $table = $wpdb->prefix . $table;
-
     $rows = $wpdb->query( $wpdb->prepare( 'show tables like %s', $table ) );
-
     return $rows > 0;
 }
 
