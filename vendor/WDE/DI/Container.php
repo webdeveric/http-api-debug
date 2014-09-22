@@ -42,10 +42,10 @@ class Container implements ArrayAccess, IteratorAggregate
     protected $factories;
 
     public function __construct(){
-        $this->objects   = [];
-        $this->callbacks = [];
-        $this->aliases   = [];
-        $this->arguments = [];
+        $this->objects   = array();
+        $this->callbacks = array();
+        $this->aliases   = array();
+        $this->arguments = array();
         $this->factories = new SplObjectStorage();
     }
 
@@ -54,8 +54,21 @@ class Container implements ArrayAccess, IteratorAggregate
         $this->arguments[$key] = $value;
     }
 
-    public function register($name, callable $callback)
+    public function getArg($key)
     {
+        if ( array_key_exists($key, $this->arguments) )
+            return $this->arguments[$key];
+        return null;
+    }
+
+
+    public function register($name, $callback, $lookup_alias = false)
+    {
+        $name = trim( $name, '\\' );
+
+        if ( $lookup_alias )
+            $name = $this->resolveAlias( $name );
+
         // check for existence and possibly throw exception for duplicates
         if ( ! $callback instanceOf Closure) {
             $callback = $this->makeClosure($callback);
@@ -63,9 +76,24 @@ class Container implements ArrayAccess, IteratorAggregate
         return $this->callbacks[$name] = $callback;
     }
 
-    public function alias($from, $to)
+    public function alias($alias_name, $original_name)
     {
-        $this->aliases[$from] = $to;
+        $alias_name    = trim( $alias_name, '\\' );
+        $original_name = trim( $original_name, '\\' );
+        $this->aliases[$alias_name] = $original_name;
+    }
+
+    public function prefixAlias($prefix, $alias)
+    {
+        if ( ! is_array($alias) )
+            $alias = array($alias);
+
+        $prefix = trim( $prefix, '\\' );
+
+        foreach ($alias as &$alias_name) {
+            $alias_name = trim( $alias_name, '\\' );
+            $this->aliases[$alias_name] = $prefix . '\\' . $alias_name;
+        }
     }
 
     public function resolveAlias($alias)
@@ -74,18 +102,18 @@ class Container implements ArrayAccess, IteratorAggregate
             return $alias;
         }
 
-        // We know the $alias index already exists because of the previous statement.
         $counter = 0;
+
         do {
             $alias = $this->aliases[$alias];
+        } while ( ++$counter < 50 && isset( $this->aliases[$alias] ) );
+        // Do it again if there is another alias for the current $alias
 
-            if (++$counter > 50) {
-                throw new UnresolvableAliasException(
-                    sprintf('Alias resolve limit (50) reached for %1$s at alias %1$s', func_get_arg(0), $alias)
-                );                
-            }
-
-        } while (isset($this->aliases[$alias]));// Do it again if there is another alias for the current $alias
+        if ( $counter >= 50 ) {
+            throw new UnresolvableAliasException(
+                sprintf('Alias resolve limit (50) reached for %1$s at alias %1$s', func_get_arg(0), $alias)
+            );                
+        }
 
         return $alias;
     }
@@ -95,7 +123,7 @@ class Container implements ArrayAccess, IteratorAggregate
         return $this->objects[$name] = $object;
     }
 
-    public function factory($name, callable $callback)
+    public function factory($name, $callback)
     {
         $callback = $this->register($name, $callback);
         $this->factories->attach($callback);
@@ -104,16 +132,19 @@ class Container implements ArrayAccess, IteratorAggregate
 
     public function has($name)
     {
-        foreach (['callbacks', 'objects', 'aliases'] as $field) {
+        $fields = array('callbacks', 'objects', 'aliases');
+
+        foreach ( $fields as &$field ) {
             if (array_key_exists($name, $this->$field))
                 return true;
         }
+
         return false;
     }
 
     public function get($name)
     {
-        foreach ([false, true] as $lowercase) {
+        foreach ( array(false, true) as $lowercase ) {
             try {
                 if($lowercase) {
                     $name = strtolower($name);
@@ -148,7 +179,7 @@ class Container implements ArrayAccess, IteratorAggregate
         throw new UnresolvableClassException($e->getMessage());
     }
 
-    protected function makeClosure(callable $callback)
+    protected function makeClosure($callback)
     {
         return function (Container $container) use ($callback) {
             return $callback($container);
@@ -177,7 +208,7 @@ class Container implements ArrayAccess, IteratorAggregate
                     return new $name;
                 }
 
-                $parameters = [];
+                $parameters = array();
                 foreach ($params as $param) {
                     $parameters[] = $this->resolveParameter($param, $ref);
                 }
