@@ -1,13 +1,13 @@
 <?php
 namespace WDE\Util;
 
-class Container implements \ArrayAccess, \IteratorAggregate, \Countable
+class DataBag implements \ArrayAccess, \IteratorAggregate, \Countable
 {
     protected $data;
 
     public function __construct( array $data = array() )
     {
-        $this->setData( $data );
+        $this->data = $data;
     }
 
     public function __destruct()

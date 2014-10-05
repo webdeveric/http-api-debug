@@ -1,20 +1,26 @@
 <?php
 namespace WDE\Plugin;
-use WDE\Util\Container;
+use WDE\Util\DataBag;
 
-class Config extends Container
+class Config extends DataBag
 {
     protected $option;
 
-    public function __construct( $config_option )
+    public function __construct( $config_option, array $default = array() )
     {
         $this->option = $config_option;
-        parent::__construct( \get_site_option( $config_option, array() ) );
-        admin_debug( $this->data );
+        $data = \get_site_option( $config_option, $default );
+        $data = array_merge( $default, $data );
+        parent::__construct( $data );
     }
 
-    public function save()
+    public function update()
     {
         return \update_site_option( $this->option, $this->data );
+    }
+
+    public function delete()
+    {
+        return \delete_site_option( $this->option );
     }
 }
