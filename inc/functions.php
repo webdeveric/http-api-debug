@@ -118,7 +118,7 @@ function error_message($message)
 
 function debug_message($message)
 {
-    return '<div class="error"><pre>' . print_r($message, true) . '</pre></div>';
+    return '<div class="error"><xmp>' . print_r($message, true) . '</xmp></div>';
 }
 
 function admin_notice($message)
@@ -135,10 +135,12 @@ function admin_error($message)
     });
 }
 
-function admin_debug($message)
+function admin_debug()
 {
-    add_action('admin_notices', function () use ($message) {
-        echo debug_message($message);
+    $messages = func_get_args();
+    add_action('admin_notices', function () use ($messages) {
+        foreach ($messages as $msg)
+            echo debug_message($msg);
     });
 }
 
