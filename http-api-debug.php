@@ -4,7 +4,8 @@
 namespace WDE\HTTPAPIDebug;
 use WDE\Autoloader\Autoloader;
 use WDE\DI\Container;
-use WDE\Plugin\Config;
+use WDE\HTTPAPIDebug\Config;
+use Exception;
 
 include __DIR__ . '/inc/functions.php';
 include __DIR__ . '/inc/Autoloader.php';
@@ -24,20 +25,17 @@ $app->prefixAlias( __NAMESPACE__, array(
     'Installer',
     'DebugLogger',
     'LogModel',
+    'AdminNotify'
 ) );
+
+$app->alias('Config', 'WDE\HTTPAPIDebug\Config');
 
 // I only want one Config object so lets set it up to be a shared dependency.
 $app->register(
-    'WDE\Plugin\Config',
+    'Config',
     function(Container $app) {
-        $config = new Config('http-api-debug');
-        /*
-        $config->filter = 'exclude';
-        $config->ignore_cron = true;
-        $config->require_wp_debug = false;
-        $config->domains = 'phplug.in';
-        $config->save();
-        */
+        $config = new Config( 'http-api-debug' );
+        $config->admin_notify = 1;
         return $config;
     },
     true
@@ -50,10 +48,6 @@ $app->register('LoadOrder', function(Container $app) {
 add_action('plugins_loaded', function() use ($app) {
 
     try {
-        if ( wp_debug() ) {
-            admin_notice('<strong>WP_DEBUG</strong> is on.');
-        }
-
         // Check to see if the plugin needs to update the DB schema.
         $installer = $app->get('Installer');
         $installer->check_database();
@@ -63,15 +57,18 @@ add_action('plugins_loaded', function() use ($app) {
 
         // This hooks into http_api_debug.
         $logger = $app->get('DebugLogger');
+        $config = $app->get('Config');
 
         if ( is_admin() ) {
             // Load admin specific functionality here.
             // Add options pages here.
             // Associate menu items to page controllers.
+
+            $app->get('AdminNotify');
+
         }
 
-    } catch (\Exception $e) {
-        admin_debug( $e ->getTrace() );
+    } catch (Exception $e) {
         admin_error( '<strong>HTTP API Debug:</strong> ' . $e->getMessage() );
     }
 
