@@ -446,3 +446,12 @@ function maybe_json_decode($string, $assoc = false)
     $decoded = json_decode($string, $assoc);
     return json_last_error() === JSON_ERROR_NONE ? $decoded : $string;
 }
+
+if ( ! function_exists('wp_debug') ):
+
+function wp_debug()
+{
+    return defined('WP_DEBUG') && WP_DEBUG == true;
+}
+
+endif;
