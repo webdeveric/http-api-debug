@@ -1,6 +1,6 @@
 <?php
-
 namespace WDE\HTTPAPIDebug;
+use WDE\Plugin\Config;
 
 class DebugLogger
 {

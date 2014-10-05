@@ -1,11 +1,20 @@
 <?php
+namespace WDE\Plugin;
+use WDE\Util\Container;
 
-namespace WDE\HTTPAPIDebug;
-
-class Config
+class Config extends Container
 {
-    public function __construct()
+    protected $option;
+
+    public function __construct( $config_option )
     {
-        admin_notice('Setup config object here');
+        $this->option = $config_option;
+        parent::__construct( \get_site_option( $config_option, array() ) );
+        admin_debug( $this->data );
+    }
+
+    public function save()
+    {
+        return \update_site_option( $this->option, $this->data );
     }
 }
