@@ -1,6 +1,5 @@
 <?php
 // Bootstrap the plugin here.
-
 namespace WDE\HTTPAPIDebug;
 use WDE\Autoloader\Autoloader;
 use WDE\DI\Container;
@@ -14,6 +13,7 @@ global $wpdb;
 
 $autoloader = new Autoloader();
 $autoloader->addNamespace('WDE', __DIR__ . '/vendor/WDE/');
+$autoloader->addNamespace('WP', __DIR__ . '/vendor/WP/');
 $autoloader->register();
 
 $app = new Container;
@@ -25,7 +25,9 @@ $app->prefixAlias( __NAMESPACE__, array(
     'Installer',
     'DebugLogger',
     'LogModel',
-    'AdminNotify'
+    'AdminNotify',
+    'ListingPage',
+    'SettingsPage'
 ) );
 
 $app->alias('Config', 'WDE\HTTPAPIDebug\Config');
@@ -37,6 +39,24 @@ $app->register(
         $config = new Config( 'http-api-debug' );
         $config->admin_notify = 1;
         return $config;
+    },
+    true
+);
+
+$app->register(
+    'ListingPage',
+    function(Container $app) {
+        return new ListingPage( new LogTable() );
+    },
+    true
+);
+
+$app->register(
+    'SettingsPage',
+    function(Container $app) {
+        $page = new SettingsPage();
+        $page->setParent( $app->get('ListingPage') );
+        return $page;
     },
     true
 );
@@ -60,12 +80,9 @@ add_action('plugins_loaded', function() use ($app) {
         $config = $app->get('Config');
 
         if ( is_admin() ) {
-            // Load admin specific functionality here.
-            // Add options pages here.
-            // Associate menu items to page controllers.
-
+            $app->get('ListingPage');
+            $app->get('SettingsPage');
             $app->get('AdminNotify');
-
         }
 
     } catch (Exception $e) {
