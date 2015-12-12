@@ -1,7 +1,7 @@
 .AppleDouble
-Thumbs.db
 .sass-cache
-node_modules
-/css/src
+Thumbs.db
 npm-debug.log
-
+/node_modules
+/css/src
+/vendor/
