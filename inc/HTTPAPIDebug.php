@@ -63,7 +63,7 @@ class HTTPAPIDebug
         $this->main_page_hook = \add_menu_page(
             'HTTP API Debug',
             'HTTP API Debug',
-            'update_plugins',
+            'activate_plugins',
             $this->main_page_slug,
             array(&$this, 'admin_page'),
             'dashicons-info'            
@@ -73,7 +73,7 @@ class HTTPAPIDebug
             $this->main_page_slug,
             'HTTP API Debug Options',
             'Options',
-            'update_plugins',
+            'activate_plugins',
             $this->options_page_slug,
             array(&$this, 'options_admin_page')
         );
