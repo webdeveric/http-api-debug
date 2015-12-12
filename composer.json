@@ -1,0 +1,14 @@
+{
+    "name": "webdeveric/http-api-debug",
+    "description": "Hook into the http_api_debug action to see the HTTP requests your site is making.",
+    "type": "wordpress-plugin",
+    "authors": [
+        {
+            "name": "Eric King",
+            "email": "eric@webdeveric.com"
+        }
+    ],
+    "require": {
+        "composer/installers": "^1.0"
+    }
+}
