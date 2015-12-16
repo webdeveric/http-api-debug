@@ -6,8 +6,9 @@ function table_size( $table, $add_prefix = true )
 {
     global $wpdb;
 
-    if ($add_prefix)
+    if ( $add_prefix ) {
         $table = $wpdb->prefix . $table;
+    }
 
     $bytes = $wpdb->get_var(
         $wpdb->prepare(
@@ -23,8 +24,9 @@ function table_columns( $table, $add_prefix = true )
 {
     global $wpdb;
 
-    if ($add_prefix)
+    if ( $add_prefix ) {
         $table = $wpdb->prefix . $table;
+    }
 
     return $wpdb->get_col( 'DESCRIBE ' . $table, 0 );
 }
@@ -33,8 +35,9 @@ function table_exists( $table, $add_prefix = true )
 {
     global $wpdb;
 
-    if ($add_prefix)
+    if ( $add_prefix ) {
         $table = $wpdb->prefix . $table;
+    }
 
     $rows = $wpdb->query( $wpdb->prepare( 'show tables like %s', $table ) );
 
