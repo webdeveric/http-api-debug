@@ -111,8 +111,9 @@ class HTTPAPIDebug
             $this->options_group,
             'http-api-debug-domain-filter',
             function($value) {
-                if ( $value == 'exclude' || $value == 'include' )
+                if ( $value == 'exclude' || $value == 'include' ) {
                     return $value;
+                }
                 return 'exclude';
             }
         );
@@ -368,7 +369,6 @@ class HTTPAPIDebug
             printf('<p><a href="%s">Go back</a></p>', admin_url('tools.php?page=http-api-debug'));
 
         }
-
     }
 
     public function options_admin_page()
@@ -440,7 +440,7 @@ class HTTPAPIDebug
 
     public function dbVersion()
     {
-        return get_site_option($this->version_db_key, '0.0.0');
+        return get_site_option( $this->version_db_key, '0.0.0' );
     }
 
     public function activate()
@@ -487,9 +487,10 @@ class HTTPAPIDebug
             context varchar(32) NOT NULL default 'response',
             transport varchar(32) NOT NULL default '',
             microtime DOUBLE UNSIGNED NOT NULL DEFAULT 0,
-            PRIMARY KEY  (log_id),
+            PRIMARY KEY (log_id),
             INDEX site_blog_ids (site_id, blog_id),
-            INDEX request_info (method, host, status)
+            INDEX request_info (method, host, status),
+            INDEX log_microtime (microtime)
         ) $charset_collate;";
 
         $create_headers_table = "CREATE TABLE {$this->headers_table} (
@@ -504,11 +505,6 @@ class HTTPAPIDebug
             INDEX header_name (header_name)            
         ) $charset_collate;";
 
-        /*
-        $this->db->show_errors();
-        $this->db->print_error();
-        */
-
         \dbDelta( $create_log_table );
         \dbDelta( $create_headers_table );
 
@@ -517,14 +513,17 @@ class HTTPAPIDebug
 
     protected function set_db_version($version)
     {
-    	\update_option( $this->version_db_key, $version );
+        \update_site_option( $this->version_db_key, $version );
     }
 
-    public function update_db_check() {
-        if ( ! table_exists('http_api_debug_log') || ! table_exists('http_api_debug_log_headers') || version_compare($this->dbVersion(), $this->version(), '<')) {
+    public function update_db_check()
+    {
+        if ( ! table_exists('http_api_debug_log') || ! table_exists('http_api_debug_log_headers') || version_compare( $this->dbVersion(), $this->version(), '<') ) {
             $this->install();
-            if (current_filter() === 'plugins_loaded')
+
+            if ( current_filter() === 'plugins_loaded' ) {
                 admin_notice('Updating DB for HTTP API Debug plugin.');
+            }
         }
     }
 
@@ -544,6 +543,7 @@ class HTTPAPIDebug
             if (str_starts_with($message, 'Operation timed out'))
                 return true;
         }
+
         return false;
     }
 
@@ -553,6 +553,7 @@ class HTTPAPIDebug
         if ($code === 0 && is_cron_request($url)) {
             return 999;
         }
+
         return $code;
     }
 
@@ -562,6 +563,7 @@ class HTTPAPIDebug
         if ($code === 0 && $this->wp_error_request_timedout($response)) {
             return 408; // 408 Request Timeout
         }
+
         return $code;
     }
 
@@ -570,6 +572,7 @@ class HTTPAPIDebug
         if ($code === 0 && ! checkdnsrr($url, 'A') ) {
             return 410; // Gone - Is this the best code to use when there isn't a DNS record for $url?
         }
+
         return $code;
     }
 
@@ -577,11 +580,11 @@ class HTTPAPIDebug
     {
         $host = parse_url($url, PHP_URL_HOST);
 
-        if ($this->domain_filter == 'exclude' && in_array($host, $this->domains) ){
+        if ($this->domain_filter == 'exclude' && in_array($host, $this->domains) ) {
             return;
         }
 
-        if ($this->domain_filter == 'include' && ! in_array($host, $this->domains) ){
+        if ($this->domain_filter == 'include' && ! in_array($host, $this->domains) ) {
             return;
         }
 
@@ -589,8 +592,9 @@ class HTTPAPIDebug
 
         $this->db->show_errors();
 
-        if ( ! $log_this_entry)
+        if ( ! $log_this_entry ) {
             return;
+        }
 
         $request_method = '';
 
@@ -649,7 +653,7 @@ class HTTPAPIDebug
                 (site_id, blog_id, method, host, url, status, request_args, request_body, response_data, response_body, backtrace, context, transport, microtime)
                 values
                 (%d, %d, %s, %s, %s, %d, %s, %s, %s, %s, %s, %s, %s, %f)",
-            function_exists('get_current_site') ? \get_current_site() : 0,
+            function_exists('get_current_site') ? (\get_current_site())->id : 0,
             get_current_blog_id(),
             $request_method,
             $host,
@@ -699,12 +703,13 @@ class HTTPAPIDebug
 
         }
 
-        if ( $this->logs_to_keep > 0 )
+        if ( $this->logs_to_keep > 0 ) {
             log_entries_delete_all_except( $this->logs_to_keep );
+        }
 
-        if ( $this->purge_after > 0 )
+        if ( $this->purge_after > 0 ) {
             log_entries_delete_older_than( $this->purge_after );
-
+        }
     }
 
 }
