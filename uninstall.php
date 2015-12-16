@@ -1,8 +1,8 @@
 <?php
 
 global $wpdb;
-$wpdb->query("DROP TABLE {$wpdb->prefix}http_api_debug_log_headers");
-$wpdb->query("DROP TABLE {$wpdb->prefix}http_api_debug_log");
+$wpdb->query("DROP TABLE {$wpdb->base_prefix}http_api_debug_log_headers");
+$wpdb->query("DROP TABLE {$wpdb->base_prefix}http_api_debug_log");
 
 $options_to_delete = array(
     'http-api-debug-logs-to-keep',

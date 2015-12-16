@@ -16,8 +16,8 @@ class HTTPAPIDebug
     {
         $this->db                = &$wpdb;
         $this->version_db_key    = 'http-api-debug-version';
-        $this->log_table         = $this->db->prefix . "http_api_debug_log";
-        $this->headers_table     = $this->db->prefix . "http_api_debug_log_headers";
+        $this->log_table         = $this->db->base_prefix . "http_api_debug_log";
+        $this->headers_table     = $this->db->base_prefix . "http_api_debug_log_headers";
         $this->main_page_slug    = 'http-api-debug';
         $this->options_page_slug = 'http-api-debug-options';
         $this->options_group     = 'http-api-debug';
@@ -37,16 +37,22 @@ class HTTPAPIDebug
 
         add_action( 'plugins_loaded', array( &$this, 'update_db_check' ) );
         add_action( 'admin_menu', array( &$this, 'admin_menu' ), 10, 0 );
+
+        // add_action( 'network_admin_menu', array( &$this, 'admin_menu' ), 10, 0 );
+        // is_multisite() ? 'network_admin_menu' : 'admin_menu'
+
         add_action( 'admin_init', array( &$this, 'admin_init' ), 10, 0 );
 
         add_filter( 'admin_footer_text', array( &$this, 'admin_footer_text' ), PHP_INT_MAX, 1);
         add_filter( 'set-screen-option', array( &$this, 'set_screen_option' ), 10, 3 );
 
-        if ( ! $this->require_wp_debug || ( defined('WP_DEBUG') && constant('WP_DEBUG') == true ) )
+        if ( ! $this->require_wp_debug || ( defined('WP_DEBUG') && constant('WP_DEBUG') == true ) ) {
             add_action( 'http_api_debug', array( &$this, 'http_api_debug' ), 10, 5 );
+        }
 
-        if ( $this->ignore_cron )
+        if ( $this->ignore_cron ) {
             add_filter('http_api_debug_record_log', array( &$this, 'ignore_cron'), 10, 6);
+        }
 
     }
 
@@ -518,7 +524,7 @@ class HTTPAPIDebug
 
     public function update_db_check()
     {
-        if ( ! table_exists('http_api_debug_log') || ! table_exists('http_api_debug_log_headers') || version_compare( $this->dbVersion(), $this->version(), '<') ) {
+        if ( ! table_exists( $this->log_table, false ) || ! table_exists( $this->headers_table, false ) || version_compare( $this->dbVersion(), $this->version(), '<' ) ) {
             $this->install();
 
             if ( current_filter() === 'plugins_loaded' ) {

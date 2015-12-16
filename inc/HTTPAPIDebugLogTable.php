@@ -30,8 +30,9 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
     {
         $data = json_decode( $data );
 
-        if ( ! isset($data))
+        if ( ! isset( $data ) ) {
             return 'Unable do decode JSON.';
+        }
 
         return implode(
             ', ',
@@ -50,7 +51,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             case 'context':
             case 'transport':
             case 'url':
-                return $item[$column_name];
+                return $item[ $column_name ];
             case 'microtime':
 
                 $date_format = get_option('date_format');
@@ -254,7 +255,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
             $total_items = (int)$wpdb->get_var(
                 $wpdb->prepare(
-                    'select count(*) from ' . $wpdb->prefix . 'http_api_debug_log where
+                    'select count(*) from ' . $wpdb->base_prefix . 'http_api_debug_log where
                         host like "%1$s" or
                         url like "%1$s" or
                         request_args like "%1$s" or
@@ -269,14 +270,14 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
             $total_items = (int)$wpdb->get_var(
                 $wpdb->prepare(
-                    "select count(*) from {$wpdb->prefix}http_api_debug_log where host = %s",
+                    "select count(*) from {$wpdb->base_prefix}http_api_debug_log where host = %s",
                     $_REQUEST['host']
                 )
             );
 
         } else {
 
-            $total_items = (int)$wpdb->get_var("select count(*) from {$wpdb->prefix}http_api_debug_log");
+            $total_items = (int)$wpdb->get_var("select count(*) from {$wpdb->base_prefix}http_api_debug_log");
 
         }
 
@@ -323,7 +324,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
             $data = $wpdb->get_results(
                 $wpdb->prepare(
-                    'select * from ' . $wpdb->prefix . 'http_api_debug_log where
+                    'select * from ' . $wpdb->base_prefix . 'http_api_debug_log where
                         host like "%1$s" or
                         url like "%1$s" or
                         request_args like "%1$s" or
@@ -340,7 +341,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
             $data = $wpdb->get_results(
                 $wpdb->prepare(
-                    "select * from {$wpdb->prefix}http_api_debug_log where host = %s order by {$order_by} {$order} limit {$page_offset}, {$per_page}",
+                    "select * from {$wpdb->base_prefix}http_api_debug_log where host = %s order by {$order_by} {$order} limit {$page_offset}, {$per_page}",
                     $_REQUEST['host']
                 ),
                 'ARRAY_A'
@@ -349,7 +350,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         } else {
 
             $data = $wpdb->get_results(
-                "select * from {$wpdb->prefix}http_api_debug_log order by {$order_by} {$order} limit {$page_offset}, {$per_page}",
+                "select * from {$wpdb->base_prefix}http_api_debug_log order by {$order_by} {$order} limit {$page_offset}, {$per_page}",
                 'ARRAY_A'
             );
 
