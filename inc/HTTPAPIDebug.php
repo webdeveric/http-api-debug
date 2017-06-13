@@ -72,7 +72,7 @@ class HTTPAPIDebug
             'activate_plugins',
             $this->main_page_slug,
             array(&$this, 'admin_page'),
-            'dashicons-info'            
+            'dashicons-info'
         );
 
         \add_submenu_page(
@@ -123,7 +123,7 @@ class HTTPAPIDebug
                 return 'exclude';
             }
         );
-        
+
         register_setting(
             $this->options_group,
             'http-api-debug-domains',
@@ -406,7 +406,7 @@ class HTTPAPIDebug
            return;
 
         if ( array_key_exists('log_id', $_REQUEST ) ) {
-            
+
             if ( (int)$_REQUEST['log_id'] > 0 ) {
                 // Screen options for viewing single log entry go here.
             }
@@ -508,7 +508,7 @@ class HTTPAPIDebug
             PRIMARY KEY (log_header_id),
             FOREIGN KEY (log_id) REFERENCES {$this->log_table} (log_id) ON DELETE cascade ON UPDATE cascade,
             INDEX header_type (header_type),
-            INDEX header_name (header_name)            
+            INDEX header_name (header_name)
         ) $charset_collate;";
 
         \dbDelta( $create_log_table );
@@ -645,13 +645,16 @@ class HTTPAPIDebug
 
         $request_args = json_encode($request_args);
 
+        $request_body = json_encode($request_body);
+
         $response_data = json_encode($response);
 
-        $backtrace = print_r( \debug_backtrace(), true );
-        $backtrace = str_replace( ABSPATH, '/', $backtrace );
+        // @todo Add options for ignore args and backtrace limit.
+        $backtrace = json_encode( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 10 ) );
+        $backtrace = str_replace(ABSPATH, '/', $backtrace);
 
-        foreach ( array('DB_USER', 'DB_PASSWORD') as $field ) {
-            $backtrace = str_replace( constant($field), 'hidden for your protection', $backtrace );
+        foreach ([ 'DB_USER', 'DB_PASSWORD' ] as $field) {
+            $backtrace = str_replace( '"' . constant($field) . '"', '"HIDDEN"', $backtrace );
         }
 
         $insert_log_entry = $this->db->prepare(
