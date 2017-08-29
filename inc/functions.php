@@ -255,9 +255,14 @@ function data_table($data, $headers = [])
     return $html;
 }
 
-function get_content_type($content_type_header)
+function get_content_type($contentType)
 {
-    $parts = explode(';', $content_type_header);
+    if ( is_object( $contentType ) && property_exists($contentType, 'header_value') && is_string($contentType->header_value)) {
+        $contentType = $contentType->header_value;
+    }
+
+    $parts = explode(';', $contentType);
+
     return $parts[0];
 }
 
