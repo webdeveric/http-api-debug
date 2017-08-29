@@ -1,5 +1,6 @@
 {
-  "name": "http-api-debug",
+  "name": "@webdeveric/http-api-debug",
+  "private": true,
   "version": "0.1.3",
   "repository": {
     "type": "git",
