@@ -1,19 +1,21 @@
 <?php
 
-namespace WDE\HTTPAPIDebug;
+namespace webdeveric\HTTPAPIDebug;
 
-class HTTPAPIDebugLogTable extends \WP_List_Table
+use WP_List_Table;
+
+class HTTPAPIDebugLogTable extends WP_List_Table
 {
     public function __construct()
     {
         global $status, $page;
 
         parent::__construct(
-            array(
+            [
                 'singular'  => 'http-api-debug-log',
                 'plural'    => 'http-api-debug-logs',
                 'ajax'      => false
-            )
+            ]
         );
     }
 
@@ -30,8 +32,9 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
     {
         $data = json_decode( $data );
 
-        if ( ! isset($data))
+        if ( ! isset($data)) {
             return 'Unable do decode JSON.';
+        }
 
         return implode(
             ', ',
@@ -89,9 +92,9 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
     }
 
     public function column_url($item)
-    {        
+    {
         $menu_page = menu_page_url( $_REQUEST['page'], false );
-        
+
         $view_url = add_query_arg(
             array(
                 'action' => 'view',
@@ -122,7 +125,8 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         );
     }
 
-    public function column_cb($item){
+    public function column_cb($item)
+    {
         if (isset($item['log_id']))
             return sprintf(
                 '<input type="checkbox" name="%1$s[]" value="%2$s" />',
@@ -148,39 +152,36 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         $columns['url']      = 'URL';
         $columns['status']   = 'Status';
         $columns['method']   = 'Method';
-        $columns['host']     = 'Host';        
+        $columns['host']     = 'Host';
 
         $columns = array_merge(
-            array(
+            [
                 'cb' => '<input type="checkbox" />',
-            ),
+            ],
             $columns,
             $log_table_columns
         );
-        
-        $columns['microtime'] = 'When';
 
+        $columns['microtime'] = 'When';
 
         return $columns;
     }
 
     public function get_sortable_columns()
     {
-        $sortable_columns = array(
-            'log_id'   => array('log_id', false),
-            'microtime' => array('microtime', true),
-            'url'      => array('url', false),
-            'status'   => array('status', false)
-        );
-        return $sortable_columns;
+        return [
+            'log_id' => ['log_id', false],
+            'microtime' => ['microtime', true],
+            'url' => ['url', false],
+            'status' => ['status', false],
+        ];
     }
 
     public function get_bulk_actions()
     {
-        $actions = array(
+        return [
             'delete' => 'Delete'
-        );
-        return $actions;
+        ];
     }
 
     public function extra_tablenav( $which )
@@ -194,7 +195,8 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         endif;
     }
 
-    public function no_items() {
+    public function no_items()
+    {
         _e( 'No log entries found.' );
     }
 
@@ -206,16 +208,16 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             $log_id = array_key_exists('log_id', $_REQUEST) ? (int)$_REQUEST['log_id'] : 0;
 
             // Used in bulk delete.
-            $http_api_debug_log = array_key_exists( $this->_args['singular'], $_REQUEST ) ? $_REQUEST[ $this->_args['singular'] ] : array();
+            $http_api_debug_log = array_key_exists( $this->_args['singular'], $_REQUEST ) ? $_REQUEST[ $this->_args['singular'] ] : [];
 
             if ( array_key_exists( '_wpnonce', $_REQUEST ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
 
                 if ( ! empty( $http_api_debug_log ) ) {
 
                    array_map( __NAMESPACE__ .'\delete_log_entry', $http_api_debug_log );
-                
+
                 } else {
-                    
+
                     echo '<div class="error"><p>Please select some log entries.</p></div>';
 
                 }
@@ -245,9 +247,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
         global $wpdb;
 
         $per_page = $this->get_items_per_page('http_api_debug_log_per_page', 20);
-
         $current_page = $this->get_pagenum();
-
         $total_items = 0;
 
         if ( isset( $_REQUEST['s'] ) && ! empty( $_REQUEST['s'] ) ) {
@@ -280,14 +280,15 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         }
 
-        if ($per_page * $current_page > $total_items)
+        if ($per_page * $current_page > $total_items) {
             admin_notice( ($per_page * $current_page) . ' > ' . $total_items );
+        }
 
         $page_offset = $current_page > 1 ? ($current_page - 1) * $per_page : 0;
 
         $columns = $this->get_columns();
 
-        $hidden = array(
+        $hidden = [
             'log_id',
             'context',
             'transport',
@@ -296,7 +297,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             'response_body',
             'response_data',
             'backtrace'
-        );
+        ];
 
         if ( ! is_multisite()) {
             $hidden[] = 'site_id';
@@ -317,7 +318,7 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
             $order = $_REQUEST['order'];
         }
 
-        $data = array();
+        $data = [];
 
         if ( isset( $_REQUEST['s'] ) && ! empty( $_REQUEST['s'] ) ) {
 
@@ -357,11 +358,10 @@ class HTTPAPIDebugLogTable extends \WP_List_Table
 
         $this->items = $data;
 
-        $this->set_pagination_args( array(
-            'total_items' => $total_items,                  //WE have to calculate the total number of items
-            'per_page'    => $per_page,                     //WE have to determine how many items to show on a page
-            'total_pages' => ceil($total_items/$per_page)   //WE have to calculate the total number of pages
-        ) );
+        $this->set_pagination_args([
+            'total_items' => $total_items,
+            'per_page'    => $per_page,
+            'total_pages' => ceil($total_items/$per_page)
+        ]);
     }
-
 }

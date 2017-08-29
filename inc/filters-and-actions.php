@@ -1,17 +1,17 @@
 <?php
 
-namespace WDE\HTTPAPIDebug;
+namespace webdeveric\HTTPAPIDebug;
 
 function format_log_entry_bodies($entry)
 {
-    foreach (array('response', 'request') as $r) {
+    foreach ( ['response', 'request'] as $r) {
         $headers = $r . '_headers';
         $headers = $entry->$headers;
         $body    = $r . '_body';
         $parsed  = $body . '_parsed';
 
         if (isset($headers['content-type'], $entry->$body) && $entry->$body !== '') {
-            
+
             switch ( get_content_type( $headers['content-type'] ) ) {
                 case 'application/x-www-form-urlencoded':
                     parse_str($entry->$body, $entry->$parsed);
@@ -54,16 +54,12 @@ function format_log_entry_bodies($entry)
 
     return $entry;
 }
-add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry_bodies', 10, 1 );
-
 
 function format_log_entry_response_data($entry)
 {
     $entry->response_data = json_decode($entry->response_data, true);
     return $entry;
 }
-add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry_response_data', 10, 1 );
-
 
 function format_log_entry_url($entry)
 {
@@ -131,7 +127,7 @@ function format_log_entry_url($entry)
                         $extra_content = $extra[ $position ];
 
                         if ( is_array( $extra_content ) ) {
-                             
+
                             if ( isset( $extra_content['field'], $parts[ $extra_content['field'] ] ) && empty( $parts[ $extra_content['field'] ] ) == $extra_content['empty'] ) {
 
                                 $part_html = sprintf( $format, $part, $extra_content['content'], $part_html );
@@ -158,8 +154,10 @@ function format_log_entry_url($entry)
 
     return $entry;
 }
-add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry_url', 10, 2 );
 
+add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry_url', 10, 2 );
+add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry_response_data', 10, 1 );
+add_filter('http_api_debug_log_entry', __NAMESPACE__ . '\format_log_entry_bodies', 10, 1 );
 
 /*
 // This is a simple example. There is an options page in the admin where you can input the domains to ignore.

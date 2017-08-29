@@ -1,21 +1,21 @@
 <?php
 
-namespace WDE\HTTPAPIDebug;
+namespace webdeveric\HTTPAPIDebug;
 
-if ( ! \is_admin())
+if ( ! \is_admin() ) {
     return;
+}
 
 function admin_styles()
 {
-    wp_enqueue_style('highlightjs', '//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.2/styles/default.min.css', array(), null);
-    wp_enqueue_style('http-api-debug', plugins_url('/css/dist/main.min.css', HTTP_API_DEBUG_FILE), array(), HTTP_API_DEBUG_VERSION);
+    wp_enqueue_style('highlightjs', '//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.2/styles/default.min.css', [], null);
+    wp_enqueue_style('http-api-debug', plugins_url('/css/dist/main.min.css', HTTP_API_DEBUG_FILE), [], HTTP_API_DEBUG_VERSION);
 }
 
 function admin_scripts()
 {
-    wp_enqueue_script('highlightjs', '//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.2/highlight.min.js', array(), null);
-    wp_enqueue_script('http-api-debug', plugins_url('/js/dist/main.min.js', HTTP_API_DEBUG_FILE), array(), HTTP_API_DEBUG_VERSION);
-
+    wp_enqueue_script('highlightjs', '//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.2/highlight.min.js', [], null);
+    wp_enqueue_script('http-api-debug', plugins_url('/js/dist/main.min.js', HTTP_API_DEBUG_FILE), [], HTTP_API_DEBUG_VERSION);
 }
 
 function display_log_table()
@@ -43,14 +43,15 @@ function display_log_entry()
 
     if ( ! empty( $entry ) ) {
 
-
-        if ( property_exists($entry, 'response') )
+        if ( property_exists($entry, 'response') ) {
             $entry->response = json_decode($entry->response);
+        }
 
 		$entry = apply_filters('http_api_debug_log_entry', $entry);
 
-        if (isset($entry))
+        if ( isset($entry) ) {
             include __DIR__ . '/single-entry.php';
+        }
 
     } else {
 
@@ -58,7 +59,6 @@ function display_log_entry()
         printf('<p><a href="%s">Go back</a></p>', admin_url('tools.php?page=http-api-debug'));
 
     }
-
 }
 
 function delete_log_entry_confirm()
@@ -72,49 +72,49 @@ function http_api_debug_admin_menu()
 
     $http_api_debug_page = \add_management_page( 'HTTP API Debug', 'HTTP API Debug', 'update_plugins', 'http-api-debug', __NAMESPACE__ . '\http_api_debug_admin_page');
 
-    add_action('admin_print_styles-' . $http_api_debug_page, __NAMESPACE__ . '\admin_styles');
-    add_action('admin_print_scripts-' . $http_api_debug_page, __NAMESPACE__ . '\admin_scripts');
-
-    add_action("load-$http_api_debug_page", __NAMESPACE__ . '\http_api_debug_screen_options');
+    add_action("admin_print_styles-{$http_api_debug_page}", __NAMESPACE__ . '\admin_styles');
+    add_action("admin_print_scripts-{$http_api_debug_page}", __NAMESPACE__ . '\admin_scripts');
+    add_action("load-{$http_api_debug_page}", __NAMESPACE__ . '\http_api_debug_screen_options');
 }
 
 function http_api_debug_screen_options()
 {
     global $http_api_debug_page;
 
-    $screen = get_current_screen();
+    $screen = \get_current_screen();
 
-    if(!is_object($screen) || $screen->id != $http_api_debug_page)
+    if( ! is_object($screen) || $screen->id != $http_api_debug_page ) {
        return;
- 
-    $args = array(
+    }
+
+    $args = [
         'label'   => 'Log entries per page',
         'default' => 20,
-        'option'  => 'http_api_debug_log_per_page'
-    );
+        'option'  => 'http_api_debug_log_per_page',
+    ];
 
-    add_screen_option( 'per_page', $args );
+    \add_screen_option( 'per_page', $args );
 }
 
 function http_api_debug_set_screen_option($status, $option, $value)
 {
-    if ( $option == 'http_api_debug_log_per_page' )
+    if ( $option == 'http_api_debug_log_per_page' ) {
         return $value;
+    }
 }
-add_filter('set-screen-option', __NAMESPACE__ . '\http_api_debug_set_screen_option', 10, 3);
-
 
 function http_api_debug_admin_page()
 {
-    $valid_actions = array(
+    $valid_actions = [
         'view',
         // 'delete'
-    );
+    ];
 
     $action = '';
 
-    if ( isset( $_REQUEST['action'] ) && in_array($_REQUEST['action'], $valid_actions) )
+    if ( isset( $_REQUEST['action'] ) && in_array($_REQUEST['action'], $valid_actions) ) {
         $action = $_REQUEST['action'];
+    }
 
     echo '<div class="wrap">';
 
@@ -135,3 +135,4 @@ function http_api_debug_admin_page()
 }
 
 \add_action('admin_menu', __NAMESPACE__ . '\http_api_debug_admin_menu');
+\add_filter('set-screen-option', __NAMESPACE__ . '\http_api_debug_set_screen_option', 10, 3);

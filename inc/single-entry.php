@@ -1,13 +1,12 @@
 <?php
-namespace WDE\HTTPAPIDebug;
+
+namespace webdeveric\HTTPAPIDebug;
 
 $nav_link_format = '<a href="%1$s" class="log-nav log-nav-%3$s tooltip-bottom" data-tooltip="%2$s log entry"><span>%2$s</span></a>';
 $nav_link_format_placeholder = '<span class="log-nav log-nav-placeholder tooltip tooltip-bottom" data-tooltip="No %1$s log entry"><span>&nbsp;</span></span>';
 
 $prev_url = get_prev_log_entry_url($entry->log_id);
-
 $next_url = get_next_log_entry_url($entry->log_id);
-
 ?>
 <article class="log-entry">
 
@@ -41,12 +40,9 @@ $next_url = get_next_log_entry_url($entry->log_id);
     </header>
 
     <?php
-
-    // var_dump($entry); 
-
     if (isset($entry->request_args))
         echo key_value_table($entry->request_args, array('Argument', 'Value'), 'Request Arguments');
-    
+
     if (isset($entry->response_data))
        echo key_value_table($entry->response_data, array('Argument', 'Value'), 'Response Data');
 

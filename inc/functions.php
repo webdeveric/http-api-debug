@@ -1,6 +1,6 @@
 <?php
 
-namespace WDE\HTTPAPIDebug;
+namespace webdeveric\HTTPAPIDebug;
 
 function table_size( $table, $add_prefix = true )
 {
@@ -46,7 +46,7 @@ function table_exists( $table, $add_prefix = true )
 
 function convert_bytes( $bytes, $abbreviated = true, $precision = 2, $stop_at = null )
 {
-    $units = array(
+    $units = [
         'B'  => 'Byte',
         'KB' => 'Kilobyte',
         'MB' => 'Megabyte',
@@ -56,7 +56,7 @@ function convert_bytes( $bytes, $abbreviated = true, $precision = 2, $stop_at = 
         'EB' => 'Exabyte',
         'ZB' => 'Zetabyte',
         'YB' => 'Yottabyte'
-    );
+    ];
 
     $stop_key = false;
 
@@ -80,11 +80,13 @@ function convert_bytes( $bytes, $abbreviated = true, $precision = 2, $stop_at = 
     }
 
     foreach ($units as $unit_abbr => $unit_name) {
-        if ($stop_key !== false && $stop_key === $unit_abbr)
+        if ($stop_key !== false && $stop_key === $unit_abbr) {
             break;
+        }
 
-        if ( ( $converted_size = $bytes/1024 ) < 1 )
+        if ( ( $converted_size = $bytes/1024 ) < 1 ) {
             break;
+        }
 
         $bytes = $converted_size;
     }
@@ -155,8 +157,10 @@ function admin_debug($message)
 function str_value($arg)
 {
     if (is_scalar($arg)) {
-        if (is_bool($arg))
+        if (is_bool($arg)) {
             return $arg ? 'true' : 'false';
+        }
+
         return (string)$arg;
     } else {
         if (is_object($arg)) {
@@ -167,20 +171,23 @@ function str_value($arg)
             }
         }
 
-        if (is_array($arg))
+        if (is_array($arg)) {
             return key_value_table($arg);
+        }
     }
+
     return print_r($arg, true);
 }
 
-function key_value_table($data, $headers = array('Key', 'Value'), $caption = null)
+function key_value_table($data, $headers = ['Key', 'Value'], $caption = null)
 {
-    if (empty($data))
+    if (empty($data)) {
         return '';
+    }
 
-    $rows = array();
+    $rows = [];
 
-    foreach ($data as $key => &$value) {
+    foreach ($data as $key => $value) {
         $rows[] = sprintf(
             '<tr><th scope="row">%1$s</th><td>%2$s</td></tr>',
             $key,
@@ -188,8 +195,9 @@ function key_value_table($data, $headers = array('Key', 'Value'), $caption = nul
         );
     }
 
-    if ( isset( $caption ) )
-        $caption = '<caption>' . (string)$caption . '</caption>';
+    if ( isset( $caption ) ) {
+        $caption = '<caption>' . (string) $caption . '</caption>';
+    }
 
     $html = sprintf(
         '<table class="key-value-table">%4$s<thead><tr><th scope="col">%1$s</th><th scope="col">%2$s</th></tr></thead><tbody>%3$s</tbody></table>',
@@ -202,37 +210,40 @@ function key_value_table($data, $headers = array('Key', 'Value'), $caption = nul
     return $html;
 }
 
-function data_table($data, $headers = array())
+function data_table($data, $headers = [])
 {
-    if (empty($data))
+    if (empty($data)) {
         return '';
+    }
 
-    $table_columns = array();
+    $table_columns = [];
     $table_header_row = '';
-    foreach ($headers as &$table_header) {
+
+    foreach ($headers as $table_header) {
         list($col, $tag, $text) = explode(':', $table_header);
         $table_columns[$col] = isset($tag) ? $tag : 'td';
         $table_header_row .= '<th>'. ( isset($text)? $text : $col ) . '</th>';
     }
 
-    if ( ! empty($table_header_row))
+    if ( ! empty($table_header_row)) {
         $table_header_row = sprintf('<thead><tr>%s</tr></thead>', $table_header_row);
+    }
 
     unset($headers);
 
-    $rows = array();
+    $rows = [];
 
-    foreach ($data as &$row) {
-
+    foreach ($data as $row) {
         $tr = '<tr>';
-        foreach($row as $key => &$value) {
+
+        foreach($row as $key => $value) {
             $tag = isset($table_columns[$key]) ? $table_columns[$key] : 'td';
             $tr .= sprintf('<%1$s>%2$s</%1$s>', $tag, str_value( $value ) );
         }
+
         $tr .= '</tr>';
 
         $rows[] = $tr;
-
     }
 
     $html = sprintf(
@@ -255,12 +266,9 @@ function is_cron_request($url)
     $url_parts = parse_url($url);
     $site_host = parse_url(get_site_url(), PHP_URL_HOST);
 
-    if ( isset($url_parts['host'], $url_parts['path']) &&
-         $url_parts['host'] == $site_host &&
-         str_ends_with($url_parts['path'], '/wp-cron.php') ) {
-        return true;
-    }
-    return false;
+    return isset( $url_parts['host'], $url_parts['path'] ) &&
+           $url_parts['host'] === $site_host &&
+           str_ends_with($url_parts['path'], '/wp-cron.php');
 }
 
 function get_log_entry($log_id)
@@ -274,13 +282,15 @@ function get_log_entry($log_id)
         )
     );
 
-    if (count($entry) === 0)
+    if (count($entry) === 0) {
         return false;
+    }
 
     $entry = array_shift($entry);
 
-    if ( property_exists($entry, 'request_args') )
+    if ( property_exists($entry, 'request_args') ) {
         $entry->request_args = json_decode($entry->request_args, true);
+    }
 
     $entry->request_headers = get_log_entry_headers($log_id, 'req');
     $entry->response_headers = get_log_entry_headers($log_id, 'res');
@@ -309,11 +319,13 @@ function get_adjacent_log_id($log_id, $prev = true)
 function get_adjacent_log_entry_url($log_id, $prev)
 {
     $adjacent_log_id = get_adjacent_log_id($log_id, $prev);
+
     if ( isset( $adjacent_log_id ) ) {
         $url = remove_query_arg('log_id');
         $url = add_query_arg('log_id', $adjacent_log_id);
         return $url;
     }
+
     return false;
 }
 
@@ -340,7 +352,7 @@ function get_log_entry_headers($log_id, $header_type)
         OBJECT_K
     );
 
-    foreach ($headers as &$value) {
+    foreach ($headers as $value) {
         $value = $value->header_value;
     }
 
@@ -384,8 +396,9 @@ function log_entries_delete_all_except($number_to_keep)
 
     $number_to_keep = (int)$number_to_keep;
 
-    if ( ! $number_to_keep )
+    if ( ! $number_to_keep ) {
         throw new Exception('Specify number_to_keep');
+    }
 
     $sql = "DELETE FROM {$wpdb->prefix}http_api_debug_log WHERE log_id <= ( SELECT log_id FROM ( SELECT log_id FROM {$wpdb->prefix}http_api_debug_log ORDER BY log_id DESC LIMIT 1 OFFSET {$number_to_keep} ) as last_log_id )";
 
@@ -400,8 +413,9 @@ function log_entries_delete_older_than($seconds)
 
     $seconds = abs((int)$seconds);
 
-    if ( ! $seconds )
+    if ( ! $seconds ) {
         throw new Exception('Specify $seconds');
+    }
 
     $sql = "delete log, headers from {$wpdb->prefix}http_api_debug_log as log join {$wpdb->prefix}http_api_debug_log_headers as headers using (log_id) where log.microtime <  UNIX_TIMESTAMP() - {$seconds}";
 
@@ -412,23 +426,28 @@ function log_entries_delete_older_than($seconds)
 
 function array_key_not_empty($key, array $data)
 {
-    if ( ! array_key_exists($key, $data) )
+    if ( ! array_key_exists($key, $data) ) {
         return false;
+    }
+
     return ! empty( $data[ $key ] );
 }
 
-function html_attr(array $attributes = array())
+function html_attr(array $attributes = [])
 {
-    $attr = array();
+    $attr = [];
 
-    $binary_attr = array('required', 'checked', 'selected');
+    $binary_attr = ['required', 'checked', 'selected'];
 
     foreach($attributes as $name => $value) {
         if (in_array($name, $binary_attr)) {
-            if ($value)
+            if ($value) {
                 $attr[] = $name;
+            }
+
             continue;
         }
+
         $attr[] = $name . '="' . esc_attr($value) . '"';
     }
 
