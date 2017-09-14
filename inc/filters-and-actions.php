@@ -31,7 +31,7 @@ function format_log_entry_bodies($entry)
                 case 'application/rss+xml':
                 case 'text/xml':
                     $parser = xml_parser_create();
-                    xml_parse_into_struct($parser, $entry->$body, $entry->$parsed );
+                    xml_parse_into_struct($parser, $entry->$body, $entry->$parsed);
                     xml_parser_free($parser);
                     break;
                 case 'text/yaml' && function_exists('yaml_parse'):
