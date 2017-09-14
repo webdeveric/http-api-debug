@@ -324,13 +324,15 @@ class HTTPAPIDebugLogTable extends WP_List_Table
 
             $data = $wpdb->get_results(
                 $wpdb->prepare(
-                    'select * from ' . $wpdb->prefix . 'http_api_debug_log where
-                        host like "%1$s" or
-                        url like "%1$s" or
-                        request_args like "%1$s" or
-                        request_body like "%1$s" or
-                        response_data like "%1$s" or
-                        response_body like "%1$s"' .
+                    'select * from ' . $wpdb->prefix . 'http_api_debug_log as log join ' . $wpdb->prefix . 'http_api_debug_log_headers as headers using( log_id ) where
+                        log.host like "%1$s" or
+                        log.url like "%1$s" or
+                        log.request_args like "%1$s" or
+                        log.request_body like "%1$s" or
+                        log.response_data like "%1$s" or
+                        log.response_body like "%1$s" or
+                        headers.header_name like "%1$s" or
+                        headers.header_value like "%1$s"' .
                     "order by {$order_by} {$order} limit {$page_offset}, {$per_page}",
                     '%' . $_REQUEST['s'] . '%'
                 ),
